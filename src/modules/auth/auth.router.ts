@@ -1,41 +1,90 @@
-import { Router } from 'express';
-import { authController } from './auth.controller';
-import { bearerAuthMiddleware } from './guards/bearer-auth.middleware';
-import { validateBody } from '../../common/middlewares/zod-validation.middleware';
+import { Request, Response } from 'express';
+import { authService } from './auth.service';
 
-import { loginInputSchema } from './validation/login.schema';
-import { registrationInputSchema } from './validation/registration.schema';
-import { registrationConfirmationSchema } from './validation/registration-confirmation.schema';
-import { registrationEmailResendingSchema } from './validation/registration-email-resending.schema';
+export const authController = {
+  async login(req: Request, res: Response): Promise<void> {
+    const result = await authService.login(req.body);
 
-export const authRouter = Router();
+    if (!result) {
+      res.sendStatus(401);
+      return;
+    }
 
-authRouter.post(
-  '/login',
-  validateBody(loginInputSchema),
-  authController.login,
-);
+    res.status(200).send(result);
+  },
 
-authRouter.get(
-  '/me',
-  bearerAuthMiddleware,
-  authController.me,
-);
+  async me(req: Request, res: Response): Promise<void> {
+    const userId = req.userId;
 
-authRouter.post(
-  '/registration',
-  validateBody(registrationInputSchema),
-  authController.registration,
-);
+    if (!userId) {
+      res.sendStatus(401);
+      return;
+    }
 
-authRouter.post(
-  '/registration-confirmation',
-  validateBody(registrationConfirmationSchema),
-  authController.registrationConfirmation,
-);
+    const result = await authService.getMe(userId);
 
-authRouter.post(
-  '/registration-email-resending',
-  validateBody(registrationEmailResendingSchema),
-  authController.registrationEmailResending,
-);
+    if (!result) {
+      res.sendStatus(401);
+      return;
+    }
+
+    res.status(200).send(result);
+  },
+
+  async registration(req: Request, res: Response): Promise<void> {
+    const result = await authService.registration(req.body);
+
+    if (!result.success) {
+      res.status(400).send({
+        errorsMessages: [
+          {
+            message: 'User with this login or email already exists',
+            field: result.field,
+          },
+        ],
+      });
+
+      return;
+    }
+
+    res.sendStatus(204);
+  },
+
+  async registrationConfirmation(req: Request, res: Response): Promise<void> {
+    const result = await authService.confirmRegistration(req.body);
+
+    if (!result) {
+      res.status(400).send({
+        errorsMessages: [
+          {
+            message: 'Confirmation code is incorrect, expired or already applied',
+            field: 'code',
+          },
+        ],
+      });
+
+      return;
+    }
+
+    res.sendStatus(204);
+  },
+
+  async registrationEmailResending(req: Request, res: Response): Promise<void> {
+    const result = await authService.resendRegistrationEmail(req.body);
+
+    if (!result) {
+      res.status(400).send({
+        errorsMessages: [
+          {
+            message: 'Email is incorrect or already confirmed',
+            field: 'email',
+          },
+        ],
+      });
+
+      return;
+    }
+
+    res.sendStatus(204);
+  },
+};

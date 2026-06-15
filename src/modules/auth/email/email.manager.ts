@@ -12,22 +12,38 @@ const transporter = nodemailer.createTransport({
 });
 
 export const emailManager = {
-  async sendRegistrationEmail(email: string, code: string): Promise<void> {
-   const confirmationUrl = `${env.clientUrl}/confirm-email?code=${code}`;
+  async sendRegistrationEmail(
+    email: string,
+    code: string,
+  ): Promise<void> {
+    try {
+      const confirmationUrl =
+        `${env.clientUrl}/confirm-email?code=${code}`;
 
-    await transporter.sendMail({
-      from: env.EMAIL_FROM,
-      to: email,
-      subject: 'register',
-      html: `
-        <div>
-          <h1>Thank for your registration</h1>
-          <p>
-            To finish registration please follow the link below:
-            <a href='${confirmationUrl}'>complete registration</a>
-          </p>
-        </div>
-      `,
-    });
+      await Promise.race([
+        transporter.sendMail({
+          from: env.EMAIL_FROM,
+          to: email,
+          subject: 'register',
+          html: `
+            <h1>Thank for your registration</h1>
+            <p>
+              To finish registration please follow the link below:
+              <a href='${confirmationUrl}'>
+                complete registration
+              </a>
+            </p>
+          `,
+        }),
+
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('email timeout')), 4000),
+        ),
+      ]);
+
+      console.log('EMAIL SENT');
+    } catch (error) {
+      console.error('EMAIL ERROR:', error);
+    }
   },
 };

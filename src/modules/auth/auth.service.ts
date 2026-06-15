@@ -14,6 +14,15 @@ import { RegistrationInputDto } from './dto/registration.input-dto';
 import { RegistrationConfirmationCodeInputDto } from './dto/registration-confirmation-code.input-dto';
 import { RegistrationEmailResendingInputDto } from './dto/registration-email-resending.input-dto';
 
+type RegistrationResult =
+  | {
+      success: true;
+    }
+  | {
+      success: false;
+      field: 'login' | 'email';
+    };
+
 export const authService = {
   async login(input: LoginInputDto): Promise<LoginSuccessViewDto | null> {
     const user = await usersRepository.findByLoginOrEmail(input.loginOrEmail);
@@ -54,15 +63,23 @@ export const authService = {
     };
   },
 
-  async registration(input: RegistrationInputDto): Promise<boolean> {
+  async registration(input: RegistrationInputDto): Promise<RegistrationResult> {
     const isLoginExists = await usersRepository.isLoginExists(input.login);
+
     if (isLoginExists) {
-      return false;
+      return {
+        success: false,
+        field: 'login',
+      };
     }
 
     const isEmailExists = await usersRepository.isEmailExists(input.email);
+
     if (isEmailExists) {
-      return false;
+      return {
+        success: false,
+        field: 'email',
+      };
     }
 
     const passwordHash = await bcrypt.hash(
@@ -86,9 +103,12 @@ export const authService = {
     };
 
     await usersRepository.createUser(newUser);
+
     await emailManager.sendRegistrationEmail(input.email, confirmationCode);
 
-    return true;
+    return {
+      success: true,
+    };
   },
 
   async confirmRegistration(
