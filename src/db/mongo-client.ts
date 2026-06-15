@@ -1,6 +1,6 @@
 import { Db, MongoClient } from 'mongodb';
 import { env } from '../config/env';
-import { createMongoIndexes } from './mongo-indexes';
+// import { createMongoIndexes } from './mongo-indexes';
 
 export const mongoClient = new MongoClient(env.mongoUrl, {
   serverSelectionTimeoutMS: 3000,
@@ -19,7 +19,7 @@ export const connectToMongo = async (): Promise<void> => {
     connectionPromise = mongoClient.connect().then(async () => {
       db = mongoClient.db(env.dbName);
 
-      await createMongoIndexes(db);
+      // await createMongoIndexes(db);
 
       if (!env.isTest) {
         console.log(`Connected to MongoDB database: ${env.dbName}`);
