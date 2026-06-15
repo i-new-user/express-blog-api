@@ -10,7 +10,6 @@ import { postInputSchema } from './validation/post.schema';
 export const postsRouter = Router();
 
 postsRouter.get('/', postsController.getPosts);
-postsRouter.get('/:id', postsController.getPostById);
 
 postsRouter.get(
   '/:postId/comments',
@@ -23,6 +22,8 @@ postsRouter.post(
   validateBody(commentInputSchema),
   commentsController.createCommentForPost,
 );
+
+postsRouter.get('/:id', postsController.getPostById);
 
 postsRouter.post(
   '/',

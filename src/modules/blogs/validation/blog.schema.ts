@@ -17,9 +17,18 @@ export const blogInputSchema = z.object({
     .max(500, 'Description must be at most 500 characters'),
 
   websiteUrl: z
-    .string()
-    .trim()
-    .min(1, 'Website URL is required')
-    .max(100, 'Website URL must be at most 100 characters')
-    .regex(websiteUrlRegex, 'Website URL must be valid HTTPS URL'),
+  .string()
+  .trim()
+  .min(1, 'Website URL is required')
+  .refine(
+    (value) => {
+      if (!value) return true;
+
+      return /^https:\/\/.+/i.test(value);
+    },
+    {
+      message: 'Website URL must be valid HTTPS URL',
+    },
+  )
 });
+
