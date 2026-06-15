@@ -1,27 +1,25 @@
 import { Db, MongoClient } from 'mongodb';
 import { env } from '../config/env';
 
-/**
- * MongoDB подключаем один раз при старте приложения.
- *
- * Важно:
- * - MongoClient нельзя создавать на каждый запрос
- * - подключение должно быть singleton
- * - коллекции позже будем брать из db
- */
-
 export const mongoClient = new MongoClient(env.mongoUrl, {
   serverSelectionTimeoutMS: 3000,
+  maxPoolSize: 10,
 });
 
 let db: Db | null = null;
+let connectionPromise: Promise<void> | null = null;
 
 export const connectToMongo = async (): Promise<void> => {
-  await mongoClient.connect();
+  if (db) return;
 
-  db = mongoClient.db(env.dbName);
+  if (!connectionPromise) {
+    connectionPromise = mongoClient.connect().then(() => {
+      db = mongoClient.db(env.dbName);
+      console.log(`✅ Connected to MongoDB database: ${env.dbName}`);
+    });
+  }
 
-  console.log(`✅ Connected to MongoDB database: ${env.dbName}`);
+  await connectionPromise;
 };
 
 export const getDb = (): Db => {
@@ -35,4 +33,5 @@ export const getDb = (): Db => {
 export const closeMongoConnection = async (): Promise<void> => {
   await mongoClient.close();
   db = null;
+  connectionPromise = null;
 };
