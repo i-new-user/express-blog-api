@@ -2,34 +2,33 @@ import { Request, Response } from 'express';
 import { usersService } from './users.service';
 import { usersQueryRepository } from './users.query-repository';
 
-
 export const usersController = {
   async createUser(req: Request, res: Response): Promise<void> {
-    const createdUser = await usersService.createUser(req.body);
+    const result = await usersService.createUser(req.body);
 
-    if (!createdUser) {
+    if (!result.success) {
       res.status(400).send({
         errorsMessages: [
           {
-            message: 'User with this login or email already exists',
-            field: 'login',
+            message: `User with this ${result.field} already exists`,
+            field: result.field,
           },
         ],
       });
       return;
     }
 
-    res.status(201).send(createdUser);
+    res.status(201).send(result.user);
   },
 
   async getUsers(req: Request, res: Response): Promise<void> {
-  const result = await usersQueryRepository.findUsers(req.query);
+    const result = await usersQueryRepository.findUsers(req.query);
 
-  res.status(200).send(result);
-},
+    res.status(200).send(result);
+  },
 
   async deleteUser(req: Request, res: Response): Promise<void> {
-     const userId = String(req.params.id);
+    const userId = String(req.params.id);
     const isDeleted = await usersService.deleteUser(userId);
 
     if (!isDeleted) {

@@ -3,13 +3,8 @@ import { blogsRepository } from './blogs.repository';
 import { BlogDbModel } from './domain/blog.entity';
 import { BlogInputDto } from './dto/blog.input-dto';
 import { BlogViewDto } from './dto/blog.view-dto';
+import { mapBlogToView } from './blogs.mapper';
 
-/**
- * Service — слой бизнес-логики.
- *
- * Здесь мы создаём сущность блога.
- * Controller не должен знать, как именно создаётся BlogDbModel.
- */
 export const blogsService = {
   async createBlog(input: BlogInputDto): Promise<BlogViewDto> {
     const newBlog: BlogDbModel = {
@@ -23,14 +18,7 @@ export const blogsService = {
 
     await blogsRepository.createBlog(newBlog);
 
-    return {
-      id: newBlog._id.toString(),
-      name: newBlog.name,
-      description: newBlog.description,
-      websiteUrl: newBlog.websiteUrl,
-      createdAt: newBlog.createdAt,
-      isMembership: newBlog.isMembership,
-    };
+    return mapBlogToView(newBlog);
   },
 
   async updateBlog(id: string, input: BlogInputDto): Promise<boolean> {

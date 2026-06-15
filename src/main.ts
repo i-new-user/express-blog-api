@@ -1,27 +1,44 @@
+import { Server } from 'http';
 import { app } from './app/app';
 import { env } from './config/env';
-import { connectToMongo } from './db/mongo-client';
+import { closeMongoConnection, connectToMongo } from './db/mongo-client';
 
-/**
- * bootstrap — точка входа в приложение.
- *
- * Здесь важно:
- * 1. сначала подключиться к MongoDB
- * 2. только потом запускать HTTP-сервер
- *
- * Иначе сервер может начать принимать запросы,
- * когда база ещё не готова.
- */
+let server: Server | null = null;
+
+const gracefulShutdown = async (signal: string): Promise<void> => {
+  console.log(`${signal} received. Shutting down...`);
+
+  if (server) {
+    server.close(async () => {
+      await closeMongoConnection();
+      console.log('Application stopped');
+      process.exit(0);
+    });
+
+    return;
+  }
+
+  await closeMongoConnection();
+  process.exit(0);
+};
 
 const bootstrap = async (): Promise<void> => {
   try {
     await connectToMongo();
 
-    app.listen(env.port, () => {
-      console.log(`🚀 Server started on port ${env.port}`);
+    server = app.listen(env.port, () => {
+      console.log(`Server started on port ${env.port}`);
+    });
+
+    process.on('SIGINT', () => {
+      void gracefulShutdown('SIGINT');
+    });
+
+    process.on('SIGTERM', () => {
+      void gracefulShutdown('SIGTERM');
     });
   } catch (error) {
-    console.error('❌ Failed to start application:', error);
+    console.error('Failed to start application:', error);
     process.exit(1);
   }
 };

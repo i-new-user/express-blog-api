@@ -1,19 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
+import { env } from '../../config/env';
 
-/**
- * Basic Auth middleware.
- *
- * По учебной спецификации protected admin endpoints должны быть закрыты
- * через Basic Authorization.
- *
- * Клиент должен отправить header:
- *
- * Authorization: Basic base64(admin:qwerty)
- *
- * Важно:
- * Basic Auth — это не полноценная пользовательская авторизация.
- * Для пользователей позже будет JWT.
- */
 export const basicAuthMiddleware = (
   req: Request,
   res: Response,
@@ -37,9 +24,17 @@ export const basicAuthMiddleware = (
     'utf-8',
   );
 
-  const [login, password] = decodedCredentials.split(':');
+  const separatorIndex = decodedCredentials.indexOf(':');
 
-  if (login !== 'admin' || password !== 'qwerty') {
+  if (separatorIndex === -1) {
+    res.sendStatus(401);
+    return;
+  }
+
+  const login = decodedCredentials.slice(0, separatorIndex);
+  const password = decodedCredentials.slice(separatorIndex + 1);
+
+  if (login !== env.adminLogin || password !== env.adminPassword) {
     res.sendStatus(401);
     return;
   }

@@ -1,21 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { jwtHelper } from '../../../common/helpers/jwt/jwt.helper';
 
-/**
- * Расширяем Express Request.
- *
- * После успешной проверки accessToken
- * будем класть userId в req.userId.
- */
-declare global {
-  namespace Express {
-    interface Request {
-      userId?: string;
-    }
-  }
-}
-
-export const bearerAuthMiddleware = ( req: Request, res: Response, next: NextFunction ): void => {
+export const bearerAuthMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {

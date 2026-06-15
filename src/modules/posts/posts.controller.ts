@@ -42,12 +42,7 @@ export const postsController = {
   ): Promise<void> {
     const result = await postsService.updatePost(req.params.id, req.body);
 
-    if (result === null) {
-      res.sendStatus(400);
-      return;
-    }
-
-    if (!result) {
+    if (result.status === 'not-found') {
       res.sendStatus(404);
       return;
     }
@@ -56,9 +51,9 @@ export const postsController = {
   },
 
   async deletePost(req: Request<{ id: string }>, res: Response): Promise<void> {
-    const isDeleted = await postsService.deletePost(req.params.id);
+    const result = await postsService.deletePost(req.params.id);
 
-    if (!isDeleted) {
+    if (result.status === 'not-found') {
       res.sendStatus(404);
       return;
     }

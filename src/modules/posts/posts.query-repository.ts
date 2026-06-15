@@ -1,27 +1,29 @@
-import { ObjectId } from 'mongodb';
+import { Filter, ObjectId } from 'mongodb';
 import {
   buildPaginatedView,
   getPaginationParams,
 } from '../../common/helpers/pagination.helper';
+import { getAllowedSortBy } from '../../common/helpers/query.helper';
 import { PaginationQuery } from '../../common/types/pagination.types';
 import { getDb } from '../../db/mongo-client';
 import { PostDbModel } from './domain/post.entity';
-import { PostViewDto } from './dto/post.view-dto';
+import { mapPostToView } from './posts.mapper';
 
 const getPostsCollection = () => getDb().collection<PostDbModel>('posts');
 
-export const mapPostToView = (post: PostDbModel): PostViewDto => ({
-  id: post._id.toString(),
-  title: post.title,
-  shortDescription: post.shortDescription,
-  content: post.content,
-  blogId: post.blogId,
-  blogName: post.blogName,
-  createdAt: post.createdAt,
-});
+const allowedPostSortFields = [
+  'createdAt',
+  'title',
+  'shortDescription',
+  'content',
+  'blogId',
+  'blogName',
+] as const;
+
+type PostSortField = (typeof allowedPostSortFields)[number];
 
 export const postsQueryRepository = {
-  async findPostById(id: string): Promise<PostViewDto | null> {
+  async findPostById(id: string) {
     if (!ObjectId.isValid(id)) {
       return null;
     }
@@ -36,11 +38,19 @@ export const postsQueryRepository = {
   async findPosts(query: PaginationQuery) {
     const pagination = getPaginationParams(query);
 
-    const totalCount = await getPostsCollection().countDocuments({});
+    const sortBy = getAllowedSortBy<PostSortField>(
+      pagination.sortBy,
+      allowedPostSortFields,
+      'createdAt',
+    );
+
+    const filter: Filter<PostDbModel> = {};
+
+    const totalCount = await getPostsCollection().countDocuments(filter);
 
     const posts = await getPostsCollection()
-      .find({})
-      .sort({ [pagination.sortBy]: pagination.sortDirection })
+      .find(filter)
+      .sort({ [sortBy]: pagination.sortDirection })
       .skip(pagination.skip)
       .limit(pagination.pageSize)
       .toArray();
@@ -56,13 +66,19 @@ export const postsQueryRepository = {
   async findPostsByBlogId(blogId: string, query: PaginationQuery) {
     const pagination = getPaginationParams(query);
 
-    const filter = { blogId };
+    const sortBy = getAllowedSortBy<PostSortField>(
+      pagination.sortBy,
+      allowedPostSortFields,
+      'createdAt',
+    );
+
+    const filter: Filter<PostDbModel> = { blogId };
 
     const totalCount = await getPostsCollection().countDocuments(filter);
 
     const posts = await getPostsCollection()
       .find(filter)
-      .sort({ [pagination.sortBy]: pagination.sortDirection })
+      .sort({ [sortBy]: pagination.sortDirection })
       .skip(pagination.skip)
       .limit(pagination.pageSize)
       .toArray();

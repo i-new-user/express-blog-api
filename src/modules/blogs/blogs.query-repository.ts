@@ -1,25 +1,35 @@
-import { ObjectId, SortDirection } from 'mongodb';
-import { getDb } from '../../db/mongo-client';
-import { BlogDbModel } from './domain/blog.entity';
-import { BlogViewDto } from './dto/blog.view-dto';
+import { Filter, ObjectId } from 'mongodb';
 import {
   buildPaginatedView,
   getPaginationParams,
 } from '../../common/helpers/pagination.helper';
+import {
+  escapeRegex,
+  getAllowedSortBy,
+} from '../../common/helpers/query.helper';
+import { PaginationQuery } from '../../common/types/pagination.types';
+import { getDb } from '../../db/mongo-client';
+import { BlogDbModel } from './domain/blog.entity';
+import { mapBlogToView } from './blogs.mapper';
 
 const getBlogsCollection = () => getDb().collection<BlogDbModel>('blogs');
 
-const mapBlogToView = (blog: BlogDbModel): BlogViewDto => ({
-  id: blog._id.toString(),
-  name: blog.name,
-  description: blog.description,
-  websiteUrl: blog.websiteUrl,
-  createdAt: blog.createdAt,
-  isMembership: blog.isMembership,
-});
+const allowedBlogSortFields = [
+  'createdAt',
+  'name',
+  'description',
+  'websiteUrl',
+  'isMembership',
+] as const;
+
+type BlogSortField = (typeof allowedBlogSortFields)[number];
+
+type BlogsQuery = PaginationQuery & {
+  searchNameTerm?: string;
+};
 
 export const blogsQueryRepository = {
-  async findBlogById(id: string): Promise<BlogViewDto | null> {
+  async findBlogById(id: string) {
     if (!ObjectId.isValid(id)) {
       return null;
     }
@@ -31,33 +41,38 @@ export const blogsQueryRepository = {
     return blog ? mapBlogToView(blog) : null;
   },
 
-async findBlogs(query: {
-  searchNameTerm?: string;
-  sortBy?: string;
-  sortDirection?: 'asc' | 'desc';
-  pageNumber?: string;
-  pageSize?: string;
-}) {
-  const pagination = getPaginationParams(query);
+  async findBlogs(query: BlogsQuery) {
+    const pagination = getPaginationParams(query);
 
-  const filter = query.searchNameTerm
-    ? { name: { $regex: query.searchNameTerm, $options: 'i' } }
-    : {};
+    const sortBy = getAllowedSortBy<BlogSortField>(
+      pagination.sortBy,
+      allowedBlogSortFields,
+      'createdAt',
+    );
 
-  const totalCount = await getBlogsCollection().countDocuments(filter);
+    const filter: Filter<BlogDbModel> = query.searchNameTerm
+      ? {
+          name: {
+            $regex: escapeRegex(query.searchNameTerm),
+            $options: 'i',
+          },
+        }
+      : {};
 
-  const blogs = await getBlogsCollection()
-    .find(filter)
-    .sort({ [pagination.sortBy]: pagination.sortDirection })
-    .skip(pagination.skip)
-    .limit(pagination.pageSize)
-    .toArray();
+    const totalCount = await getBlogsCollection().countDocuments(filter);
 
-  return buildPaginatedView({
-    totalCount,
-    pageNumber: pagination.pageNumber,
-    pageSize: pagination.pageSize,
-    items: blogs.map(mapBlogToView),
-  });
-}
+    const blogs = await getBlogsCollection()
+      .find(filter)
+      .sort({ [sortBy]: pagination.sortDirection })
+      .skip(pagination.skip)
+      .limit(pagination.pageSize)
+      .toArray();
+
+    return buildPaginatedView({
+      totalCount,
+      pageNumber: pagination.pageNumber,
+      pageSize: pagination.pageSize,
+      items: blogs.map(mapBlogToView),
+    });
+  },
 };

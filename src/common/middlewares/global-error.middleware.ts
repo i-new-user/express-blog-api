@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { env } from '../../config/env';
 
-export const errorHandlerMiddleware = (
+export const globalErrorMiddleware = (
   error: unknown,
   _req: Request,
   res: Response,

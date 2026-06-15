@@ -1,8 +1,5 @@
 import { z } from 'zod';
 
-const websiteUrlRegex =
-  /^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/;
-
 export const blogInputSchema = z.object({
   name: z
     .string()
@@ -21,7 +18,8 @@ export const blogInputSchema = z.object({
     .trim()
     .min(1, 'Website URL is required')
     .max(100, 'Website URL must be at most 100 characters')
-    .refine((value) => !value || websiteUrlRegex.test(value), {
-      message: 'Website URL must be valid HTTPS URL',
+    .url('Website URL must be valid URL')
+    .refine((value) => value.startsWith('https://'), {
+      message: 'Website URL must use HTTPS',
     }),
 });

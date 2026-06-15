@@ -4,6 +4,10 @@ import { ObjectId } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import { env } from '../../config/env';
 import { jwtHelper } from '../../common/helpers/jwt/jwt.helper';
+import {
+  getDuplicateKeyField,
+  isDuplicateKeyError,
+} from '../../common/helpers/mongo-error.helper';
 import { usersRepository } from '../users/users.repository';
 import { UserDbModel } from '../users/domain/user.entity';
 import { emailManager } from './email/email.manager';
@@ -15,23 +19,14 @@ import { RegistrationConfirmationCodeInputDto } from './dto/registration-confirm
 import { RegistrationEmailResendingInputDto } from './dto/registration-email-resending.input-dto';
 
 type RegistrationResult =
-  | {
-      success: true;
-    }
-  | {
-      success: false;
-      field: 'login' | 'email';
-    };
+  | { success: true }
+  | { success: false; field: 'login' | 'email' };
 
 export const authService = {
   async login(input: LoginInputDto): Promise<LoginSuccessViewDto | null> {
     const user = await usersRepository.findByLoginOrEmail(input.loginOrEmail);
 
-    if (!user) {
-      return null;
-    }
-
-    if (!user.emailConfirmation.isConfirmed) {
+    if (!user || !user.emailConfirmation.isConfirmed) {
       return null;
     }
 
@@ -44,9 +39,9 @@ export const authService = {
       return null;
     }
 
-    const accessToken = jwtHelper.createAccessToken(user._id.toString());
-
-    return { accessToken };
+    return {
+      accessToken: jwtHelper.createAccessToken(user._id.toString()),
+    };
   },
 
   async getMe(userId: string): Promise<MeViewDto | null> {
@@ -64,24 +59,6 @@ export const authService = {
   },
 
   async registration(input: RegistrationInputDto): Promise<RegistrationResult> {
-    const isLoginExists = await usersRepository.isLoginExists(input.login);
-
-    if (isLoginExists) {
-      return {
-        success: false,
-        field: 'login',
-      };
-    }
-
-    const isEmailExists = await usersRepository.isEmailExists(input.email);
-
-    if (isEmailExists) {
-      return {
-        success: false,
-        field: 'email',
-      };
-    }
-
     const passwordHash = await bcrypt.hash(
       input.password,
       env.bcryptSaltRounds,
@@ -102,13 +79,24 @@ export const authService = {
       },
     };
 
-    await usersRepository.createUser(newUser);
+    try {
+      await usersRepository.createUser(newUser);
+    } catch (error) {
+      if (isDuplicateKeyError(error)) {
+        const field = getDuplicateKeyField(error);
+
+        return {
+          success: false,
+          field: field === 'email' ? 'email' : 'login',
+        };
+      }
+
+      throw error;
+    }
 
     await emailManager.sendRegistrationEmail(input.email, confirmationCode);
 
-    return {
-      success: true,
-    };
+    return { success: true };
   },
 
   async confirmRegistration(
@@ -136,11 +124,7 @@ export const authService = {
   ): Promise<boolean> {
     const user = await usersRepository.findByEmail(input.email);
 
-    if (!user) {
-      return false;
-    }
-
-    if (user.emailConfirmation.isConfirmed) {
+    if (!user || user.emailConfirmation.isConfirmed) {
       return false;
     }
 

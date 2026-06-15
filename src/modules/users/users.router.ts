@@ -3,24 +3,25 @@ import { usersController } from './users.controller';
 import { basicAuthMiddleware } from '../../common/middlewares/basic-auth.middleware';
 import { validateBody } from '../../common/middlewares/zod-validation.middleware';
 import { userInputSchema } from './validation/user.schema';
+import { asyncHandler } from '../../common/helpers/async-handler';
 
 export const usersRouter = Router();
 
 usersRouter.get(
   '/',
   basicAuthMiddleware,
-  usersController.getUsers,
+  asyncHandler(usersController.getUsers),
 );
 
 usersRouter.post(
   '/',
   basicAuthMiddleware,
   validateBody(userInputSchema),
-  usersController.createUser,
+  asyncHandler(usersController.createUser),
 );
 
 usersRouter.delete(
   '/:id',
   basicAuthMiddleware,
-  usersController.deleteUser,
+  asyncHandler(usersController.deleteUser),
 );

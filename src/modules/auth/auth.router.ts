@@ -6,35 +6,36 @@ import { loginInputSchema } from './validation/login.schema';
 import { registrationInputSchema } from './validation/registration.schema';
 import { registrationConfirmationSchema } from './validation/registration-confirmation.schema';
 import { registrationEmailResendingSchema } from './validation/registration-email-resending.schema';
+import { asyncHandler } from '../../common/helpers/async-handler';
 
 export const authRouter = Router();
 
 authRouter.post(
   '/login',
   validateBody(loginInputSchema),
-  authController.login,
+  asyncHandler(authController.login),
 );
 
 authRouter.get(
   '/me',
   bearerAuthMiddleware,
-  authController.me,
+  asyncHandler(authController.me),
 );
 
 authRouter.post(
   '/registration',
   validateBody(registrationInputSchema),
-  authController.registration,
+  asyncHandler(authController.registration),
 );
 
 authRouter.post(
   '/registration-confirmation',
   validateBody(registrationConfirmationSchema),
-  authController.registrationConfirmation,
+  asyncHandler(authController.registrationConfirmation),
 );
 
 authRouter.post(
   '/registration-email-resending',
   validateBody(registrationEmailResendingSchema),
-  authController.registrationEmailResending,
+  asyncHandler(authController.registrationEmailResending),
 );

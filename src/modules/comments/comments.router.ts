@@ -3,20 +3,24 @@ import { validateBody } from '../../common/middlewares/zod-validation.middleware
 import { bearerAuthMiddleware } from '../auth/guards/bearer-auth.middleware';
 import { commentsController } from './comments.controller';
 import { commentInputSchema } from './validation/comment.schema';
+import { asyncHandler } from '../../common/helpers/async-handler';
 
 export const commentsRouter = Router();
 
-commentsRouter.get('/:id', commentsController.getCommentById);
+commentsRouter.get(
+  '/:id',
+  asyncHandler(commentsController.getCommentById),
+);
 
 commentsRouter.put(
   '/:commentId',
   bearerAuthMiddleware,
   validateBody(commentInputSchema),
-  commentsController.updateComment,
+  asyncHandler(commentsController.updateComment),
 );
 
 commentsRouter.delete(
   '/:commentId',
   bearerAuthMiddleware,
-  commentsController.deleteComment,
+  asyncHandler(commentsController.deleteComment),
 );

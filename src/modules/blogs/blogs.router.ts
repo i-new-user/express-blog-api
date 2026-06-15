@@ -5,33 +5,41 @@ import { blogInputSchema } from './validation/blog.schema';
 import { basicAuthMiddleware } from '../../common/middlewares/basic-auth.middleware';
 import { postsController } from '../posts/posts.controller';
 import { blogPostInputSchema } from '../posts/validation/post.schema';
+import { asyncHandler } from '../../common/helpers/async-handler';
 
 export const blogsRouter = Router();
 
-blogsRouter.get('/', blogsController.getBlogs);
-blogsRouter.get('/:id', blogsController.getBlogById);
+blogsRouter.get('/', asyncHandler(blogsController.getBlogs));
+blogsRouter.get('/:id', asyncHandler(blogsController.getBlogById));
 
-blogsRouter.get('/:blogId/posts', postsController.getPostsByBlogId);
+blogsRouter.get(
+  '/:blogId/posts',
+  asyncHandler(postsController.getPostsByBlogId),
+);
 
 blogsRouter.post(
   '/',
   basicAuthMiddleware,
   validateBody(blogInputSchema),
-  blogsController.createBlog,
+  asyncHandler(blogsController.createBlog),
 );
 
 blogsRouter.post(
   '/:blogId/posts',
   basicAuthMiddleware,
   validateBody(blogPostInputSchema),
-  postsController.createPostForBlog,
+  asyncHandler(postsController.createPostForBlog),
 );
 
 blogsRouter.put(
   '/:id',
   basicAuthMiddleware,
   validateBody(blogInputSchema),
-  blogsController.updateBlog,
+  asyncHandler(blogsController.updateBlog),
 );
 
-blogsRouter.delete('/:id', basicAuthMiddleware, blogsController.deleteBlog);
+blogsRouter.delete(
+  '/:id',
+  basicAuthMiddleware,
+  asyncHandler(blogsController.deleteBlog),
+);

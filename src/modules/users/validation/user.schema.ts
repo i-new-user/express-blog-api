@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-const loginRegex = /^[a-zA-Z0-9_-]*$/;
-const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+const loginRegex = /^[a-zA-Z0-9_-]+$/;
 
 export const userInputSchema = z.object({
   login: z
@@ -19,5 +18,6 @@ export const userInputSchema = z.object({
   email: z
     .string()
     .trim()
-    .regex(emailRegex, 'Email has invalid format'),
+    .toLowerCase()
+    .email('Email has invalid format'),
 });

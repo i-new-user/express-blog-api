@@ -32,12 +32,20 @@ export const usersRepository = {
   },
 
   async isLoginExists(login: string): Promise<boolean> {
-    const user = await getUsersCollection().findOne({ login });
+    const user = await getUsersCollection().findOne(
+      { login },
+      { projection: { _id: 1 } },
+    );
+
     return !!user;
   },
 
   async isEmailExists(email: string): Promise<boolean> {
-    const user = await getUsersCollection().findOne({ email });
+    const user = await getUsersCollection().findOne(
+      { email },
+      { projection: { _id: 1 } },
+    );
+
     return !!user;
   },
 

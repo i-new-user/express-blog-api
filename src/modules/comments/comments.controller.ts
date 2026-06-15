@@ -76,12 +76,12 @@ export const commentsController = {
       req.body,
     );
 
-    if (result === 'not-found') {
+    if (result.status === 'not-found') {
       res.sendStatus(404);
       return;
     }
 
-    if (result === 'forbidden') {
+    if (result.status === 'forbidden') {
       res.sendStatus(403);
       return;
     }
@@ -103,12 +103,12 @@ export const commentsController = {
       req.userId,
     );
 
-    if (result === 'not-found') {
+    if (result.status === 'not-found') {
       res.sendStatus(404);
       return;
     }
 
-    if (result === 'forbidden') {
+    if (result.status === 'forbidden') {
       res.sendStatus(403);
       return;
     }

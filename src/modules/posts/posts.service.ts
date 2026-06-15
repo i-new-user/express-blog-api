@@ -4,13 +4,12 @@ import { PostDbModel } from './domain/post.entity';
 import { BlogPostInputDto, PostInputDto } from './dto/post.input-dto';
 import { PostViewDto } from './dto/post.view-dto';
 import { postsRepository } from './posts.repository';
+import { mapPostToView } from './posts.mapper';
 
-/**
- * PostsService — слой бизнес-логики для постов.
- *
- * Главная бизнес-логика:
- * пост нельзя создать без существующего блога.
- */
+type PostMutationResult =
+  | { status: 'success' }
+  | { status: 'not-found' };
+
 export const postsService = {
   async createPost(input: PostInputDto): Promise<PostViewDto | null> {
     const blog = await blogsRepository.findBlogById(input.blogId);
@@ -31,15 +30,7 @@ export const postsService = {
 
     await postsRepository.createPost(newPost);
 
-    return {
-      id: newPost._id.toString(),
-      title: newPost.title,
-      shortDescription: newPost.shortDescription,
-      content: newPost.content,
-      blogId: newPost.blogId,
-      blogName: newPost.blogName,
-      createdAt: newPost.createdAt,
-    };
+    return mapPostToView(newPost);
   },
 
   async createPostForBlog(
@@ -52,23 +43,30 @@ export const postsService = {
     });
   },
 
-  async updatePost(id: string, input: PostInputDto): Promise<boolean | null> {
+  async updatePost(
+    id: string,
+    input: PostInputDto,
+  ): Promise<PostMutationResult> {
     const blog = await blogsRepository.findBlogById(input.blogId);
 
     if (!blog) {
-      return null;
+      return { status: 'not-found' };
     }
 
-    return postsRepository.updatePost(id, {
+    const isUpdated = await postsRepository.updatePost(id, {
       title: input.title,
       shortDescription: input.shortDescription,
       content: input.content,
       blogId: blog._id.toString(),
       blogName: blog.name,
     });
+
+    return isUpdated ? { status: 'success' } : { status: 'not-found' };
   },
 
-  async deletePost(id: string): Promise<boolean> {
-    return postsRepository.deletePost(id);
+  async deletePost(id: string): Promise<PostMutationResult> {
+    const isDeleted = await postsRepository.deletePost(id);
+
+    return isDeleted ? { status: 'success' } : { status: 'not-found' };
   },
 };

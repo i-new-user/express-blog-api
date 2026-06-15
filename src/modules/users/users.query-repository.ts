@@ -3,32 +3,35 @@ import {
   buildPaginatedView,
   getPaginationParams,
 } from '../../common/helpers/pagination.helper';
+import {
+  escapeRegex,
+  getAllowedSortBy,
+} from '../../common/helpers/query.helper';
 import { PaginationQuery } from '../../common/types/pagination.types';
 import { getDb } from '../../db/mongo-client';
 import { UserDbModel } from './domain/user.entity';
-import { UserViewDto } from './dto/user.view-dto';
+import { mapUserToView } from './users.mapper';
 
 const getUsersCollection = () => getDb().collection<UserDbModel>('users');
+
+const allowedUserSortFields = ['createdAt', 'login', 'email'] as const;
+
+type UserSortField = (typeof allowedUserSortFields)[number];
 
 type UsersQuery = PaginationQuery & {
   searchLoginTerm?: string;
   searchEmailTerm?: string;
 };
 
-export const mapUserToView = (user: UserDbModel): UserViewDto => ({
-  id: user._id.toString(),
-  login: user.login,
-  email: user.email,
-  createdAt: user.createdAt,
-});
-
 export const usersQueryRepository = {
-  async findUserById(id: string): Promise<UserViewDto | null> {
+  async findUserById(id: string) {
     if (!ObjectId.isValid(id)) {
       return null;
     }
 
-    const user = await getUsersCollection().findOne({ _id: new ObjectId(id) });
+    const user = await getUsersCollection().findOne({
+      _id: new ObjectId(id),
+    });
 
     return user ? mapUserToView(user) : null;
   },
@@ -36,17 +39,29 @@ export const usersQueryRepository = {
   async findUsers(query: UsersQuery) {
     const pagination = getPaginationParams(query);
 
+    const sortBy = getAllowedSortBy<UserSortField>(
+      pagination.sortBy,
+      allowedUserSortFields,
+      'createdAt',
+    );
+
     const orFilters: Filter<UserDbModel>[] = [];
 
     if (query.searchLoginTerm) {
       orFilters.push({
-        login: { $regex: query.searchLoginTerm, $options: 'i' },
+        login: {
+          $regex: escapeRegex(query.searchLoginTerm),
+          $options: 'i',
+        },
       });
     }
 
     if (query.searchEmailTerm) {
       orFilters.push({
-        email: { $regex: query.searchEmailTerm, $options: 'i' },
+        email: {
+          $regex: escapeRegex(query.searchEmailTerm),
+          $options: 'i',
+        },
       });
     }
 
@@ -57,7 +72,7 @@ export const usersQueryRepository = {
 
     const users = await getUsersCollection()
       .find(filter)
-      .sort({ [pagination.sortBy]: pagination.sortDirection })
+      .sort({ [sortBy]: pagination.sortDirection })
       .skip(pagination.skip)
       .limit(pagination.pageSize)
       .toArray();

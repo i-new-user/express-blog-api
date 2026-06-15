@@ -2,48 +2,52 @@ import nodemailer from 'nodemailer';
 import { env } from '../../../config/env';
 
 const transporter = nodemailer.createTransport({
-  host: env.EMAIL_HOST,
-  port: Number(env.EMAIL_PORT),
+  host: env.emailHost,
+  port: env.emailPort,
   secure: false,
-  auth: {
-    user: env.EMAIL_USER,
-    pass: env.EMAIL_PASSWORD,
-  },
+  auth: env.emailUser && env.emailPassword
+    ? {
+        user: env.emailUser,
+        pass: env.emailPassword,
+      }
+    : undefined,
 });
 
 export const emailManager = {
+  async sendEmail(
+    email: string,
+    subject: string,
+    message: string,
+  ): Promise<boolean> {
+    try {
+      await transporter.sendMail({
+        from: env.emailFrom,
+        to: email,
+        subject,
+        html: message,
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Email sending failed:', error);
+      return false;
+    }
+  },
+
   async sendRegistrationEmail(
     email: string,
-    code: string,
-  ): Promise<void> {
-    try {
-      const confirmationUrl =
-        `${env.clientUrl}/confirm-email?code=${code}`;
+    confirmationCode: string,
+  ): Promise<boolean> {
+    const confirmationLink = `${env.clientUrl}/auth/registration-confirmation?code=${confirmationCode}`;
 
-      await Promise.race([
-        transporter.sendMail({
-          from: env.EMAIL_FROM,
-          to: email,
-          subject: 'register',
-          html: `
-            <h1>Thank for your registration</h1>
-            <p>
-              To finish registration please follow the link below:
-              <a href='${confirmationUrl}'>
-                complete registration
-              </a>
-            </p>
-          `,
-        }),
-
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('email timeout')), 4000),
-        ),
-      ]);
-
-      console.log('EMAIL SENT');
-    } catch (error) {
-      console.error('EMAIL ERROR:', error);
-    }
+    return this.sendEmail(
+      email,
+      'Registration confirmation',
+      `
+        <h1>Confirm your registration</h1>
+        <p>To finish registration, open this link:</p>
+        <a href="${confirmationLink}">${confirmationLink}</a>
+      `,
+    );
   },
 };

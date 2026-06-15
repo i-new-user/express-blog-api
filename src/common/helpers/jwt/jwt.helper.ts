@@ -1,31 +1,19 @@
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { env } from '../../../config/env';
 
 type AccessTokenPayload = {
   userId: string;
 };
 
-/**
- * JwtHelper — отдельный helper для работы с accessToken.
- *
- * Почему не пишем jwt.sign прямо в auth.service?
- * Потому что позже добавятся:
- * - refreshToken
- * - device sessions
- * - expiration
- * - email confirmation
- *
- * И всё это удобнее держать отдельно.
- */
 export const jwtHelper = {
   createAccessToken(userId: string): string {
-    const payload: AccessTokenPayload = {
-      userId,
+    const payload: AccessTokenPayload = { userId };
+
+    const options: SignOptions = {
+      expiresIn: env.accessTokenExpiresIn as SignOptions['expiresIn'],
     };
 
-    return jwt.sign(payload, env.accessTokenSecret, {
-      expiresIn: '10m',
-    });
+    return jwt.sign(payload, env.accessTokenSecret, options);
   },
 
   verifyAccessToken(token: string): AccessTokenPayload | null {

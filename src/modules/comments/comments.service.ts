@@ -5,6 +5,12 @@ import { commentsRepository } from './comments.repository';
 import { CommentDbModel } from './domain/comment.entity';
 import { CommentInputDto } from './dto/comment.input-dto';
 import { CommentViewDto } from './dto/comment.view-dto';
+import { mapCommentToView } from './comments.mapper';
+
+type CommentMutationResult =
+  | { status: 'success' }
+  | { status: 'not-found' }
+  | { status: 'forbidden' };
 
 export const commentsService = {
   async createComment(
@@ -37,50 +43,45 @@ export const commentsService = {
 
     await commentsRepository.createComment(newComment);
 
-    return {
-      id: newComment._id.toString(),
-      content: newComment.content,
-      commentatorInfo: newComment.commentatorInfo,
-      createdAt: newComment.createdAt,
-    };
+    return mapCommentToView(newComment);
   },
 
   async updateComment(
     commentId: string,
     userId: string,
     input: CommentInputDto,
-  ): Promise<'not-found' | 'forbidden' | 'success'> {
+  ): Promise<CommentMutationResult> {
     const comment = await commentsRepository.findCommentById(commentId);
 
     if (!comment) {
-      return 'not-found';
+      return { status: 'not-found' };
     }
 
     if (comment.commentatorInfo.userId !== userId) {
-      return 'forbidden';
+      return { status: 'forbidden' };
     }
 
     await commentsRepository.updateComment(commentId, input.content);
 
-    return 'success';
+    return { status: 'success' };
   },
 
   async deleteComment(
     commentId: string,
     userId: string,
-  ): Promise<'not-found' | 'forbidden' | 'success'> {
+  ): Promise<CommentMutationResult> {
     const comment = await commentsRepository.findCommentById(commentId);
 
     if (!comment) {
-      return 'not-found';
+      return { status: 'not-found' };
     }
 
     if (comment.commentatorInfo.userId !== userId) {
-      return 'forbidden';
+      return { status: 'forbidden' };
     }
 
     await commentsRepository.deleteComment(commentId);
 
-    return 'success';
+    return { status: 'success' };
   },
 };

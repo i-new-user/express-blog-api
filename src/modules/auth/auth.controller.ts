@@ -14,32 +14,32 @@ export const authController = {
   },
 
   async me(req: Request, res: Response): Promise<void> {
-  const userId = req.userId;
+    const userId = req.userId;
 
-  if (!userId) {
-    res.sendStatus(401);
-    return;
-  }
+    if (!userId) {
+      res.sendStatus(401);
+      return;
+    }
 
-  const result = await authService.getMe(userId);
+    const result = await authService.getMe(userId);
 
-  if (!result) {
-    res.sendStatus(401);
-    return;
-  }
+    if (!result) {
+      res.sendStatus(401);
+      return;
+    }
 
-  res.status(200).send(result);
-},
+    res.status(200).send(result);
+  },
 
   async registration(req: Request, res: Response): Promise<void> {
     const result = await authService.registration(req.body);
 
-    if (!result) {
+    if (!result.success) {
       res.status(400).send({
         errorsMessages: [
           {
-            message: 'User with this login or email already exists',
-            field: 'login',
+            message: `User with this ${result.field} already exists`,
+            field: result.field,
           },
         ],
       });
