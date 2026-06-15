@@ -10,7 +10,9 @@ import { env } from '../config/env';
  * - коллекции позже будем брать из db
  */
 
-export const mongoClient = new MongoClient(env.mongoUrl);
+export const mongoClient = new MongoClient(env.mongoUrl, {
+  serverSelectionTimeoutMS: 3000,
+});
 
 let db: Db | null = null;
 
