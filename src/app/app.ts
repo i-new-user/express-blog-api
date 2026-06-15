@@ -42,6 +42,8 @@ app.get('/health', (_req, res) => {
   });
 });
 
+const apiPrefix = '/hometask_07/api';
+
 app.use('/blogs', blogsRouter);
 app.use('/posts', postsRouter);
 app.use('/users', usersRouter);
@@ -49,4 +51,10 @@ app.use('/auth', authRouter);
 app.use('/comments', commentsRouter);
 app.use('/testing', testingRouter);
 
+app.use(`${apiPrefix}/blogs`, blogsRouter);
+app.use(`${apiPrefix}/posts`, postsRouter);
+app.use(`${apiPrefix}/users`, usersRouter);
+app.use(`${apiPrefix}/auth`, authRouter);
+app.use(`${apiPrefix}/comments`, commentsRouter);
+app.use(`${apiPrefix}/testing`, testingRouter);
 app.use(globalErrorMiddleware);
