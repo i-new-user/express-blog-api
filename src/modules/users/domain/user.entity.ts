@@ -1,9 +1,14 @@
-import { ObjectId } from 'mongodb';
+import { ObjectId } from 'mongodb'
 
 export type UserDbModel = {
-  _id: ObjectId;
-  login: string;
-  email: string;
-  passwordHash: string;
-  createdAt: string;
-};
+  _id: ObjectId
+  login: string
+  email: string
+  passwordHash: string
+  createdAt: string
+  emailConfirmation: {
+    confirmationCode: string
+    expirationDate: Date
+    isConfirmed: boolean
+  }
+}

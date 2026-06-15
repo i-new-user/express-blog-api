@@ -1,12 +1,16 @@
 import { Router } from 'express';
+import { usersController } from './users.controller';
 import { basicAuthMiddleware } from '../../common/middlewares/basic-auth.middleware';
 import { validateBody } from '../../common/middlewares/zod-validation.middleware';
 import { userInputSchema } from './validation/user.schema';
-import { usersController } from './users.controller';
 
 export const usersRouter = Router();
 
-usersRouter.get('/', basicAuthMiddleware, usersController.getUsers);
+usersRouter.get(
+  '/',
+  basicAuthMiddleware,
+  usersController.getUsers,
+);
 
 usersRouter.post(
   '/',
@@ -15,4 +19,8 @@ usersRouter.post(
   usersController.createUser,
 );
 
-usersRouter.delete('/:id', basicAuthMiddleware, usersController.deleteUser);
+usersRouter.delete(
+  '/:id',
+  basicAuthMiddleware,
+  usersController.deleteUser,
+);

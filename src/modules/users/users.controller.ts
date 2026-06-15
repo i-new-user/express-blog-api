@@ -1,39 +1,36 @@
 import { Request, Response } from 'express';
-import { UserInputDto } from './dto/user.input-dto';
-import { usersQueryRepository } from './users.query-repository';
 import { usersService } from './users.service';
+import { usersQueryRepository } from './users.query-repository';
+
 
 export const usersController = {
-  async getUsers(req: Request, res: Response): Promise<void> {
-    const result = await usersQueryRepository.findUsers(req.query);
-
-    res.status(200).json(result);
-  },
-
-  async createUser(
-    req: Request<object, object, UserInputDto>,
-    res: Response,
-  ): Promise<void> {
+  async createUser(req: Request, res: Response): Promise<void> {
     const createdUser = await usersService.createUser(req.body);
 
     if (!createdUser) {
-      res.status(400).json({
+      res.status(400).send({
         errorsMessages: [
           {
-            message: 'Login or email already exists',
-            field: 'loginOrEmail',
+            message: 'User with this login or email already exists',
+            field: 'login',
           },
         ],
       });
-
       return;
     }
 
-    res.status(201).json(createdUser);
+    res.status(201).send(createdUser);
   },
 
-  async deleteUser(req: Request<{ id: string }>, res: Response): Promise<void> {
-    const isDeleted = await usersService.deleteUser(req.params.id);
+  async getUsers(req: Request, res: Response): Promise<void> {
+  const result = await usersQueryRepository.findUsers(req.query);
+
+  res.status(200).send(result);
+},
+
+  async deleteUser(req: Request, res: Response): Promise<void> {
+     const userId = String(req.params.id);
+    const isDeleted = await usersService.deleteUser(userId);
 
     if (!isDeleted) {
       res.sendStatus(404);
