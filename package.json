@@ -2,16 +2,16 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "Express MongoDB TypeScript REST API",
-  "main": "dist/main.js",
+  "main": "dist/index.js",
   "license": "MIT",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/main.ts",
-    "build": "tsc",
-    "start": "node dist/main.js",
-    "test": "cross-env NODE_ENV=test jest --runInBand",
-    "test:watch": "cross-env NODE_ENV=test jest --watch",
-    "email:test": "ts-node-dev src/test-email.ts"
-  },
+  "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+  "build": "tsc",
+  "start": "node dist/index.js",
+  "test": "cross-env NODE_ENV=test jest --runInBand",
+  "test:watch": "cross-env NODE_ENV=test jest --watch",
+  "email:test": "ts-node-dev src/test-email.ts"
+},
   "dependencies": {
     "bcrypt": "^5.1.1",
     "compression": "^1.8.1",
