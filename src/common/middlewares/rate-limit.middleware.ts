@@ -22,9 +22,11 @@ const getClientIp = (req: Request): string => {
 };
 
 const normalizeEndpoint = (url: string): string => {
-  return url
-    .replace(/^\/hometask_\d+\/api/, '')
-    .split('?')[0];
+  return url.replace(/^\/hometask_\d+\/api/, '').split('?')[0];
+};
+
+export const clearRateLimitAttempts = (): void => {
+  attempts.length = 0;
 };
 
 export const rateLimitMiddleware = (
@@ -43,8 +45,7 @@ export const rateLimitMiddleware = (
   }
 
   const currentAttempts = attempts.filter(
-    (attempt) =>
-      attempt.ip === ip && attempt.endpoint === endpoint,
+    (attempt) => attempt.ip === ip && attempt.endpoint === endpoint,
   );
 
   if (currentAttempts.length >= LIMIT) {
