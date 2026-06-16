@@ -12,6 +12,8 @@ import { authRouter } from '../modules/auth/auth.router';
 import { commentsRouter } from '../modules/comments/comments.router';
 import { securityRouter } from '../modules/security/security.router';
 
+import { rateLimitMiddleware } from '../common/middlewares/rate-limit.middleware';
+
 import { testingRouter } from '../modules/testing/testing.router';
 import { globalErrorMiddleware } from '../common/middlewares/global-error.middleware';
 
@@ -43,6 +45,25 @@ app.get('/health', (_req, res) => {
     status: 'ok',
   });
 });
+
+
+
+app.use(
+  [
+    '/auth/login',
+    '/auth/registration',
+    '/auth/registration-confirmation',
+    '/auth/registration-email-resending',
+
+    '/hometask_09/api/auth/login',
+    '/hometask_09/api/auth/registration',
+    '/hometask_09/api/auth/registration-confirmation',
+    '/hometask_09/api/auth/registration-email-resending',
+  ],
+  rateLimitMiddleware,
+);
+
+
 
 const h07Prefix = '/hometask_07/api';
 const h08Prefix = '/hometask_08/api';
