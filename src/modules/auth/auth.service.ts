@@ -119,30 +119,18 @@ export const authService = {
     return usersRepository.confirmEmail(user._id);
   },
 
-  async resendRegistrationEmail(
-    input: RegistrationEmailResendingInputDto,
-  ): Promise<boolean> {
-    const user = await usersRepository.findByEmail(input.email);
+async resendRegistrationEmail( input: RegistrationEmailResendingInputDto ): Promise<boolean> {
+  const user = await usersRepository.findByEmail(input.email);
 
-    if (!user || user.emailConfirmation.isConfirmed) {
-      return false;
-    }
+  if (!user || user.emailConfirmation.isConfirmed) {
+    return false;
+  }
 
-    const newConfirmationCode = uuidv4();
-    const newExpirationDate = add(new Date(), { hours: 1 });
+  await emailManager.sendRegistrationEmail(
+    input.email,
+    user.emailConfirmation.confirmationCode,
+  );
 
-    const isUpdated = await usersRepository.updateConfirmationCode(
-      user._id,
-      newConfirmationCode,
-      newExpirationDate,
-    );
-
-    if (!isUpdated) {
-      return false;
-    }
-
-    await emailManager.sendRegistrationEmail(input.email, newConfirmationCode);
-
-    return true;
-  },
+  return true;
+},
 };
