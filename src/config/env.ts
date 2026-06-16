@@ -35,7 +35,7 @@ export const env = {
   accessTokenSecret: process.env.ACCESS_TOKEN_SECRET as string,
   accessTokenExpiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || '10m',
 
-  refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET || '',
+  refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET as string,
   refreshTokenExpires: process.env.REFRESH_TOKEN_EXPIRES || '20s',
 
   bcryptSaltRounds: Number(process.env.BCRYPT_SALT_ROUNDS) || 10,
