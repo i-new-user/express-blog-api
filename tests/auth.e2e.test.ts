@@ -1,10 +1,16 @@
 import request from 'supertest';
 import { app } from '../src/app/app';
-import { closeMongoConnection, connectToMongo } from '../src/db/mongo-client';
+import {
+  closeMongoConnection,
+  connectToMongo,
+} from '../src/db/mongo-client';
 
 const adminAuth = {
   Authorization: `Basic ${Buffer.from('admin:qwerty').toString('base64')}`,
 };
+
+const delay = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 const createUser = async () => {
   const response = await request(app)
@@ -18,6 +24,16 @@ const createUser = async () => {
     .expect(201);
 
   return response.body;
+};
+
+const getRefreshTokenCookie = (cookies: string[] | undefined): string => {
+  const refreshTokenCookie = cookies?.find((cookie) =>
+    cookie.startsWith('refreshToken='),
+  );
+
+  expect(refreshTokenCookie).toBeDefined();
+
+  return refreshTokenCookie as string;
 };
 
 describe('Auth API', () => {
@@ -62,7 +78,7 @@ describe('Auth API', () => {
       .expect(401);
   });
 
-  it('POST /auth/login should return accessToken for correct login', async () => {
+  it('POST /auth/login should return accessToken and refreshToken cookie for correct login', async () => {
     await createUser();
 
     const response = await request(app)
@@ -76,6 +92,12 @@ describe('Auth API', () => {
     expect(response.body).toEqual({
       accessToken: expect.any(String),
     });
+
+    const refreshTokenCookie = getRefreshTokenCookie(
+      response.headers['set-cookie'],
+    );
+
+    expect(refreshTokenCookie).toContain('HttpOnly');
   });
 
   it('POST /auth/login should return accessToken for correct email', async () => {
@@ -90,6 +112,9 @@ describe('Auth API', () => {
       .expect(200);
 
     expect(response.body.accessToken).toEqual(expect.any(String));
+    expect(getRefreshTokenCookie(response.headers['set-cookie'])).toContain(
+      'refreshToken=',
+    );
   });
 
   it('GET /auth/me should return 401 without token', async () => {
@@ -130,5 +155,74 @@ describe('Auth API', () => {
       login: 'user1',
       userId: user.id,
     });
+  });
+
+  it('POST /auth/refresh-token should return new accessToken and new refreshToken cookie', async () => {
+    await createUser();
+
+    const loginResponse = await request(app)
+      .post('/auth/login')
+      .send({
+        loginOrEmail: 'user1',
+        password: 'qwerty',
+      })
+      .expect(200);
+
+    const oldRefreshTokenCookie = getRefreshTokenCookie(
+      loginResponse.headers['set-cookie'],
+    );
+
+    await delay(1100);
+
+    const refreshResponse = await request(app)
+      .post('/auth/refresh-token')
+      .set('Cookie', oldRefreshTokenCookie)
+      .expect(200);
+
+    expect(refreshResponse.body).toEqual({
+      accessToken: expect.any(String),
+    });
+
+    const newRefreshTokenCookie = getRefreshTokenCookie(
+      refreshResponse.headers['set-cookie'],
+    );
+
+    expect(newRefreshTokenCookie).toContain('refreshToken=');
+    expect(newRefreshTokenCookie).not.toEqual(oldRefreshTokenCookie);
+
+    await request(app)
+      .post('/auth/refresh-token')
+      .set('Cookie', oldRefreshTokenCookie)
+      .expect(401);
+  });
+
+  it('POST /auth/refresh-token should return 401 without refresh token cookie', async () => {
+    await request(app).post('/auth/refresh-token').expect(401);
+  });
+
+  it('POST /auth/logout should invalidate refresh token', async () => {
+    await createUser();
+
+    const loginResponse = await request(app)
+      .post('/auth/login')
+      .send({
+        loginOrEmail: 'user1',
+        password: 'qwerty',
+      })
+      .expect(200);
+
+    const refreshTokenCookie = getRefreshTokenCookie(
+      loginResponse.headers['set-cookie'],
+    );
+
+    await request(app)
+      .post('/auth/logout')
+      .set('Cookie', refreshTokenCookie)
+      .expect(204);
+
+    await request(app)
+      .post('/auth/refresh-token')
+      .set('Cookie', refreshTokenCookie)
+      .expect(401);
   });
 });

@@ -10,6 +10,8 @@ import { postsRouter } from '../modules/posts/posts.router';
 import { usersRouter } from '../modules/users/users.router';
 import { authRouter } from '../modules/auth/auth.router';
 import { commentsRouter } from '../modules/comments/comments.router';
+import { securityRouter } from '../modules/security/security.router';
+
 import { testingRouter } from '../modules/testing/testing.router';
 import { globalErrorMiddleware } from '../common/middlewares/global-error.middleware';
 
@@ -42,13 +44,14 @@ app.get('/health', (_req, res) => {
   });
 });
 
-const apiPrefix = '/hometask_08/api';
+const apiPrefix = '/hometask_09/api';
 
 app.use('/blogs', blogsRouter);
 app.use('/posts', postsRouter);
 app.use('/users', usersRouter);
 app.use('/auth', authRouter);
 app.use('/comments', commentsRouter);
+app.use('/security', securityRouter);
 app.use('/testing', testingRouter);
 
 app.use(`${apiPrefix}/blogs`, blogsRouter);
@@ -56,5 +59,7 @@ app.use(`${apiPrefix}/posts`, postsRouter);
 app.use(`${apiPrefix}/users`, usersRouter);
 app.use(`${apiPrefix}/auth`, authRouter);
 app.use(`${apiPrefix}/comments`, commentsRouter);
+app.use(`${apiPrefix}/security`, securityRouter);
 app.use(`${apiPrefix}/testing`, testingRouter);
+
 app.use(globalErrorMiddleware);

@@ -9,6 +9,8 @@ import { registrationInputSchema } from './validation/registration.schema';
 import { registrationConfirmationSchema } from './validation/registration-confirmation.schema';
 import { registrationEmailResendingSchema } from './validation/registration-email-resending.schema';
 
+import { rateLimitMiddleware } from '../../common/middlewares/rate-limit.middleware';
+
 export const authRouter = Router();
 
 authRouter.post(
@@ -54,5 +56,31 @@ authRouter.post(
   validateBody(
     registrationEmailResendingSchema,
   ),
+  authController.resendRegistrationEmail,
+);authRouter.post(
+  '/login',
+  rateLimitMiddleware,
+  validateBody(loginInputSchema),
+  authController.login,
+);
+
+authRouter.post(
+  '/registration',
+  rateLimitMiddleware,
+  validateBody(registrationInputSchema),
+  authController.registration,
+);
+
+authRouter.post(
+  '/registration-confirmation',
+  rateLimitMiddleware,
+  validateBody(registrationConfirmationSchema),
+  authController.confirmRegistration,
+);
+
+authRouter.post(
+  '/registration-email-resending',
+  rateLimitMiddleware,
+  validateBody(registrationEmailResendingSchema),
   authController.resendRegistrationEmail,
 );

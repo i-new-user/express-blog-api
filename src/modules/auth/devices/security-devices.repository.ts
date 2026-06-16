@@ -52,4 +52,16 @@ export const securityDevicesRepository = {
   async deleteAllByUserId(userId: string): Promise<void> {
     await collection().deleteMany({ userId });
   },
+
+  async deleteAllOtherDevices(
+    userId: string,
+    currentDeviceId: string,
+  ): Promise<void> {
+    await collection().deleteMany({
+      userId,
+      deviceId: {
+        $ne: currentDeviceId,
+      },
+    });
+  },
 };
