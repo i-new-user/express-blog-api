@@ -3,7 +3,7 @@ import { env } from '../config/env';
 // import { createMongoIndexes } from './mongo-indexes';
 
 export const mongoClient = new MongoClient(env.mongoUrl, {
-  serverSelectionTimeoutMS: 3000,
+ serverSelectionTimeoutMS: 15000,
   maxPoolSize: 10,
 });
 
