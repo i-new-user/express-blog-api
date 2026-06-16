@@ -123,22 +123,28 @@ export const authService = {
   },
 
   async logout(
-    userId: string,
-    deviceId: string,
-    tokenIssuedAt: string,
-  ): Promise<boolean> {
-    const device =
-      await securityDevicesRepository.findByDeviceIdAndLastActiveDate(
-        deviceId,
-        tokenIssuedAt,
-      );
+  userId: string,
+  deviceId: string,
+  tokenIssuedAt: string,
+): Promise<boolean> {
+  const device =
+    await securityDevicesRepository.findByDeviceIdAndLastActiveDate(
+      deviceId,
+      tokenIssuedAt,
+    );
 
-    if (!device || device.userId !== userId) {
-      return false;
-    }
+  if (!device) {
+    return false;
+  }
 
-    return securityDevicesRepository.deleteByDeviceId(deviceId);
-  },
+  if (device.userId !== userId) {
+    return false;
+  }
+
+  await securityDevicesRepository.deleteByDeviceId(deviceId);
+
+  return true;
+},
 
   async getMe(userId: string): Promise<MeViewDto | null> {
     const user = await usersRepository.findById(userId);

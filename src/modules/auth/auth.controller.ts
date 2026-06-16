@@ -71,7 +71,8 @@ export const authController = {
     });
   },
 
-  async logout(req: Request, res: Response) {
+ async logout(req: Request, res: Response) {
+  try {
     if (!req.userId || !req.deviceId || !req.tokenIssuedAt) {
       res.sendStatus(401);
       return;
@@ -95,7 +96,10 @@ export const authController = {
     });
 
     res.sendStatus(204);
-  },
+  } catch {
+    res.sendStatus(401);
+  }
+},
 
   async me(req: Request, res: Response) {
     if (!req.userId) {
