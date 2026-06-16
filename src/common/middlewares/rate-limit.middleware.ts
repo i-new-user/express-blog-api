@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 
 type AttemptInfo = {
   ip: string;
-  url: string;
+  endpoint: string;
   date: number;
 };
 
@@ -21,6 +21,12 @@ const getClientIp = (req: Request): string => {
   return req.ip || 'unknown';
 };
 
+const normalizeEndpoint = (url: string): string => {
+  return url
+    .replace(/^\/hometask_\d+\/api/, '')
+    .split('?')[0];
+};
+
 export const rateLimitMiddleware = (
   req: Request,
   res: Response,
@@ -28,7 +34,7 @@ export const rateLimitMiddleware = (
 ) => {
   const now = Date.now();
   const ip = getClientIp(req);
-  const url = req.originalUrl;
+  const endpoint = normalizeEndpoint(req.originalUrl);
 
   for (let i = attempts.length - 1; i >= 0; i--) {
     if (now - attempts[i].date > WINDOW_MS) {
@@ -37,7 +43,8 @@ export const rateLimitMiddleware = (
   }
 
   const currentAttempts = attempts.filter(
-    (attempt) => attempt.ip === ip && attempt.url === url,
+    (attempt) =>
+      attempt.ip === ip && attempt.endpoint === endpoint,
   );
 
   if (currentAttempts.length >= LIMIT) {
@@ -47,7 +54,7 @@ export const rateLimitMiddleware = (
 
   attempts.push({
     ip,
-    url,
+    endpoint,
     date: now,
   });
 
