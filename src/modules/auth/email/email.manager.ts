@@ -5,12 +5,13 @@ const transporter = nodemailer.createTransport({
   host: env.emailHost,
   port: env.emailPort,
   secure: false,
-  auth: env.emailUser && env.emailPassword
-    ? {
-        user: env.emailUser,
-        pass: env.emailPassword,
-      }
-    : undefined,
+  auth:
+    env.emailUser && env.emailPassword
+      ? {
+          user: env.emailUser,
+          pass: env.emailPassword,
+        }
+      : undefined,
 });
 
 export const emailManager = {
@@ -38,15 +39,15 @@ export const emailManager = {
     email: string,
     confirmationCode: string,
   ): Promise<boolean> {
-    const confirmationLink = `${env.clientUrl}/auth/registration-confirmation?code=${confirmationCode}`;
+    const confirmationLink = `${env.clientUrl}/confirm-registration?code=${confirmationCode}`;
 
     return this.sendEmail(
       email,
       'Registration confirmation',
       `
-        <h1>Confirm your registration</h1>
-        <p>To finish registration, open this link:</p>
-        <a href="${confirmationLink}">${confirmationLink}</a>
+        <h1>Thank you for your registration</h1>
+        <p>To finish registration please follow the link below:</p>
+        <a href="${confirmationLink}">complete registration</a>
       `,
     );
   },
