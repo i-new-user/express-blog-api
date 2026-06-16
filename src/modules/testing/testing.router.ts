@@ -5,15 +5,4 @@ import { asyncHandler } from '../../common/helpers/async-handler';
 
 export const testingRouter = Router();
 
-testingRouter.delete(
-  '/all-data',
-  (req, res, next) => {
-    if (env.isProduction) {
-      res.sendStatus(404);
-      return;
-    }
-
-    next();
-  },
-  asyncHandler(testingController.clearAllData),
-);
+testingRouter.delete('/all-data', asyncHandler(testingController.clearAllData));

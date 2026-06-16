@@ -1,11 +1,21 @@
 import { app } from './app/app';
 import { env } from './config/env';
-import { connectToMongo } from './db/mongo-client';
+import { closeMongoConnection, connectToMongo } from './db/mongo-client';
 
-app.listen(env.port, () => {
-  console.log(`Server started on port ${env.port}`);
+const bootstrap = async (): Promise<void> => {
+  try {
+    await connectToMongo();
 
-  connectToMongo().catch((error) => {
-    console.error('MongoDB connection failed:', error);
-  });
-});
+    app.listen(env.port, () => {
+      console.log(`Server started on port ${env.port}`);
+    });
+  } catch (error) {
+    console.error('Failed to start application:', error);
+
+    await closeMongoConnection();
+
+    process.exit(1);
+  }
+};
+
+void bootstrap();
