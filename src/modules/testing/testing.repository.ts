@@ -18,6 +18,7 @@ export const testingRepository = {
       db.collection('posts').deleteMany({}),
       db.collection('users').deleteMany({}),
       db.collection('comments').deleteMany({}),
+      db.collection('securityDevices').deleteMany({}),
     ]);
   },
 };

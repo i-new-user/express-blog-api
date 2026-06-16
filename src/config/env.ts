@@ -8,6 +8,7 @@ const requiredEnv = [
   'MONGO_URL',
   'DB_NAME',
   'ACCESS_TOKEN_SECRET',
+  'REFRESH_TOKEN_SECRET',
   'ADMIN_LOGIN',
   'ADMIN_PASSWORD',
 ] as const;

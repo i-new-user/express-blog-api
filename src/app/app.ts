@@ -42,7 +42,7 @@ app.get('/health', (_req, res) => {
   });
 });
 
-const apiPrefix = '/hometask_07/api';
+const apiPrefix = '/hometask_08/api';
 
 app.use('/blogs', blogsRouter);
 app.use('/posts', postsRouter);
