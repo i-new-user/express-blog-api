@@ -44,22 +44,28 @@ app.get('/health', (_req, res) => {
   });
 });
 
-const apiPrefix = '/hometask_09/api';
+const h07Prefix = '/hometask_07/api';
+const h08Prefix = '/hometask_08/api';
+const h09Prefix = '/hometask_09/api';
 
-app.use('/blogs', blogsRouter);
-app.use('/posts', postsRouter);
-app.use('/users', usersRouter);
-app.use('/auth', authRouter);
-app.use('/comments', commentsRouter);
-app.use('/security', securityRouter);
-app.use('/testing', testingRouter);
+const registerRoutes = (prefix: string) => {
+  app.use(`${prefix}/blogs`, blogsRouter);
+  app.use(`${prefix}/posts`, postsRouter);
+  app.use(`${prefix}/users`, usersRouter);
+  app.use(`${prefix}/auth`, authRouter);
+  app.use(`${prefix}/comments`, commentsRouter);
+  app.use(`${prefix}/testing`, testingRouter);
 
-app.use(`${apiPrefix}/blogs`, blogsRouter);
-app.use(`${apiPrefix}/posts`, postsRouter);
-app.use(`${apiPrefix}/users`, usersRouter);
-app.use(`${apiPrefix}/auth`, authRouter);
-app.use(`${apiPrefix}/comments`, commentsRouter);
-app.use(`${apiPrefix}/security`, securityRouter);
-app.use(`${apiPrefix}/testing`, testingRouter);
+  if (prefix) {
+    app.use(`${prefix}/security`, securityRouter);
+  } else {
+    app.use('/security', securityRouter);
+  }
+};
+
+registerRoutes('');
+registerRoutes(h07Prefix);
+registerRoutes(h08Prefix);
+registerRoutes(h09Prefix);
 
 app.use(globalErrorMiddleware);
