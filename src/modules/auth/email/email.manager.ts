@@ -51,4 +51,23 @@ export const emailManager = {
       `,
     );
   },
+
+  async sendPasswordRecoveryEmail(
+  email: string,
+  recoveryCode: string,
+): Promise<boolean> {
+  const recoveryLink = `${env.clientUrl}/password-recovery?recoveryCode=${recoveryCode}`;
+
+  return this.sendEmail(
+    email,
+    'Password recovery',
+    `
+      <h1>Password recovery</h1>
+      <p>
+        To finish password recovery please follow the link below:
+        <a href="${recoveryLink}">recovery password</a>
+      </p>
+    `,
+  );
+},
 };

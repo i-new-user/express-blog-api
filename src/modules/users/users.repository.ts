@@ -97,4 +97,45 @@ export const usersRepository = {
 
     return result.deletedCount === 1;
   },
+
+  async findByRecoveryCode(code: string): Promise<UserDbModel | null> {
+  return getUsersCollection().findOne({
+    'emailConfirmation.recoveryCode': code,
+  });
+},
+
+async updateRecoveryCode(
+  userId: ObjectId,
+  recoveryCode: string,
+  expirationDate: Date,
+): Promise<boolean> {
+  const result = await getUsersCollection().updateOne(
+    { _id: userId },
+    {
+      $set: {
+        'emailConfirmation.recoveryCode': recoveryCode,
+        'emailConfirmation.recoveryCodeExpirationDate': expirationDate,
+      },
+    },
+  );
+
+  return result.modifiedCount === 1;
+},
+
+async updatePassword(
+  userId: ObjectId,
+  passwordHash: string,
+): Promise<boolean> {
+  const result = await getUsersCollection().updateOne(
+    { _id: userId },
+    {
+      $set: {
+        passwordHash,
+        'emailConfirmation.recoveryCode': null,
+      },
+    },
+  );
+
+  return result.modifiedCount === 1;
+},
 };

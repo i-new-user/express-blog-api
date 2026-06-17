@@ -244,4 +244,45 @@ export const authService = {
 
     return true;
   },
+
+  async passwordRecovery(email: string): Promise<void> {
+  const user = await usersRepository.findByEmail(email);
+
+  // ВСЕГДА 204 — даже если нет пользователя
+  if (!user) return;
+
+  const recoveryCode = uuidv4();
+  const expirationDate = add(new Date(), { hours: 1 });
+
+  await usersRepository.updateRecoveryCode(
+    user._id,
+    recoveryCode,
+    expirationDate,
+  );
+
+  await emailManager.sendPasswordRecoveryEmail(email, recoveryCode);
+},
+
+async newPassword(
+  newPassword: string,
+  recoveryCode: string,
+): Promise<boolean> {
+  const user = await usersRepository.findByRecoveryCode(recoveryCode);
+
+  if (!user) return false;
+
+  if (
+    !user.emailConfirmation.recoveryCodeExpirationDate ||
+    user.emailConfirmation.recoveryCodeExpirationDate < new Date()
+  ) {
+    return false;
+  }
+
+  const passwordHash = await bcrypt.hash(
+    newPassword,
+    env.bcryptSaltRounds,
+  );
+
+  return usersRepository.updatePassword(user._id, passwordHash);
+},
 };

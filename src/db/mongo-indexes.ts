@@ -18,6 +18,11 @@ export const createMongoIndexes = async (db: Db): Promise<void> => {
       },
     ),
 
+    db.collection('users').createIndex(
+      { 'emailConfirmation.recoveryCode': 1 },
+      { name: 'users_recovery_code_idx' }
+    ),
+
     db.collection('blogs').createIndex(
       { createdAt: -1 },
       {

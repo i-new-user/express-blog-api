@@ -10,5 +10,8 @@ export type UserDbModel = {
     confirmationCode: string
     expirationDate: Date
     isConfirmed: boolean
+
+    recoveryCode?: string | null
+    recoveryCodeExpirationDate?: Date | null
   }
 }

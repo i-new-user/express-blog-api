@@ -170,4 +170,30 @@ export const authController = {
 
     res.sendStatus(204);
   },
+
+  async passwordRecovery(req: Request, res: Response) {
+  await authService.passwordRecovery(req.body.email);
+  res.sendStatus(204);
+},
+
+async newPassword(req: Request, res: Response) {
+  const isSuccess = await authService.newPassword(
+    req.body.newPassword,
+    req.body.recoveryCode,
+  );
+
+  if (!isSuccess) {
+    res.status(400).send({
+      errorsMessages: [
+        {
+          message: 'Recovery code is incorrect or expired',
+          field: 'recoveryCode',
+        },
+      ],
+    });
+    return;
+  }
+
+  res.sendStatus(204);
+},
 };
