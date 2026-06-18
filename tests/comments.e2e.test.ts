@@ -128,6 +128,11 @@ describe('Comments API', () => {
         userLogin: user.login,
       },
       createdAt: expect.any(String),
+      likesInfo: {
+        likesCount: 0,
+        dislikesCount: 0,
+        myStatus: 'None',
+      },
     });
   });
 
@@ -152,6 +157,11 @@ describe('Comments API', () => {
 
     expect(response.body.id).toBe(commentId);
     expect(response.body.content).toBe('This is a valid comment content');
+    expect(response.body.likesInfo).toEqual({
+      likesCount: 0,
+      dislikesCount: 0,
+      myStatus: 'None',
+    });
   });
 
   it('GET /posts/:postId/comments should return comments for post', async () => {
@@ -185,6 +195,11 @@ describe('Comments API', () => {
             userLogin: 'user1',
           },
           createdAt: expect.any(String),
+          likesInfo: {
+            likesCount: 0,
+            dislikesCount: 0,
+            myStatus: 'None',
+          },
         },
       ],
     });
@@ -220,6 +235,11 @@ describe('Comments API', () => {
     expect(getResponse.body.content).toBe(
       'This is updated valid comment content',
     );
+    expect(getResponse.body.likesInfo).toEqual({
+      likesCount: 0,
+      dislikesCount: 0,
+      myStatus: 'None',
+    });
   });
 
   it('PUT /comments/:commentId should return 403 for another user comment', async () => {
