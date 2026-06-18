@@ -3,13 +3,17 @@ import { postsRepository } from '../posts/posts.repository';
 import { commentsQueryRepository } from './comments.query-repository';
 import { commentsService } from './comments.service';
 import { CommentInputDto } from './dto/comment.input-dto';
+import { CommentLikeStatusInputDto } from './validation/validation-like.schema';
 
 export const commentsController = {
   async getCommentById(
     req: Request<{ id: string }>,
     res: Response,
   ): Promise<void> {
-    const comment = await commentsQueryRepository.findCommentById(req.params.id);
+    const comment = await commentsQueryRepository.findCommentById(
+      req.params.id,
+      req.userId,
+    );
 
     if (!comment) {
       res.sendStatus(404);
@@ -33,6 +37,7 @@ export const commentsController = {
     const result = await commentsQueryRepository.findCommentsByPostId(
       req.params.postId,
       req.query,
+      req.userId,
     );
 
     res.status(200).json(result);
@@ -83,6 +88,33 @@ export const commentsController = {
 
     if (result.status === 'forbidden') {
       res.sendStatus(403);
+      return;
+    }
+
+    res.sendStatus(204);
+  },
+
+  async updateLikeStatus(
+    req: Request<
+      { commentId: string },
+      object,
+      CommentLikeStatusInputDto
+    >,
+    res: Response,
+  ): Promise<void> {
+    if (!req.userId) {
+      res.sendStatus(401);
+      return;
+    }
+
+    const result = await commentsService.updateLikeStatus(
+      req.params.commentId,
+      req.userId,
+      req.body.likeStatus,
+    );
+
+    if (result.status === 'not-found') {
+      res.sendStatus(404);
       return;
     }
 

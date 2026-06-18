@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { basicAuthMiddleware } from '../../common/middlewares/basic-auth.middleware';
 import { validateBody } from '../../common/middlewares/zod-validation.middleware';
 import { bearerAuthMiddleware } from '../auth/guards/bearer-auth.middleware';
+import { optionalBearerAuthMiddleware } from '../auth/guards/optional-bearer-auth.middleware';
 import { commentsController } from '../comments/comments.controller';
 import { commentInputSchema } from '../comments/validation/comment.schema';
 import { postsController } from './posts.controller';
@@ -14,6 +15,7 @@ postsRouter.get('/', asyncHandler(postsController.getPosts));
 
 postsRouter.get(
   '/:postId/comments',
+  optionalBearerAuthMiddleware,
   asyncHandler(commentsController.getCommentsByPostId),
 );
 

@@ -46,8 +46,6 @@ app.get('/health', (_req, res) => {
   });
 });
 
-
-
 app.use(
   [
     '/auth/login',
@@ -63,15 +61,29 @@ app.use(
     '/hometask_09/api/auth/registration-email-resending',
     '/hometask_09/api/auth/password-recovery',
     '/hometask_09/api/auth/new-password',
+
+    '/hometask_10/api/auth/login',
+    '/hometask_10/api/auth/registration',
+    '/hometask_10/api/auth/registration-confirmation',
+    '/hometask_10/api/auth/registration-email-resending',
+    '/hometask_10/api/auth/password-recovery',
+    '/hometask_10/api/auth/new-password',
+
+    '/hometask_11/api/auth/login',
+    '/hometask_11/api/auth/registration',
+    '/hometask_11/api/auth/registration-confirmation',
+    '/hometask_11/api/auth/registration-email-resending',
+    '/hometask_11/api/auth/password-recovery',
+    '/hometask_11/api/auth/new-password',
   ],
   rateLimitMiddleware,
 );
 
-
-
 const h07Prefix = '/hometask_07/api';
 const h08Prefix = '/hometask_08/api';
 const h09Prefix = '/hometask_09/api';
+const h10Prefix = '/hometask_10/api';
+const h11Prefix = '/hometask_11/api';
 
 const registerRoutes = (prefix: string) => {
   app.use(`${prefix}/blogs`, blogsRouter);
@@ -92,5 +104,7 @@ registerRoutes('');
 registerRoutes(h07Prefix);
 registerRoutes(h08Prefix);
 registerRoutes(h09Prefix);
+registerRoutes(h10Prefix);
+registerRoutes(h11Prefix);
 
 app.use(globalErrorMiddleware);

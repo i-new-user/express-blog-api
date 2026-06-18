@@ -17,7 +17,7 @@ const allowedCommentSortFields = ['createdAt', 'content'] as const;
 type CommentSortField = (typeof allowedCommentSortFields)[number];
 
 export const commentsQueryRepository = {
-  async findCommentById(id: string) {
+  async findCommentById(id: string, userId?: string) {
     if (!ObjectId.isValid(id)) {
       return null;
     }
@@ -26,10 +26,14 @@ export const commentsQueryRepository = {
       _id: new ObjectId(id),
     });
 
-    return comment ? mapCommentToView(comment) : null;
+    return comment ? mapCommentToView(comment, userId) : null;
   },
 
-  async findCommentsByPostId(postId: string, query: PaginationQuery) {
+  async findCommentsByPostId(
+    postId: string,
+    query: PaginationQuery,
+    userId?: string,
+  ) {
     const pagination = getPaginationParams(query);
 
     const sortBy = getAllowedSortBy<CommentSortField>(
@@ -53,7 +57,7 @@ export const commentsQueryRepository = {
       totalCount,
       pageNumber: pagination.pageNumber,
       pageSize: pagination.pageSize,
-      items: comments.map(mapCommentToView),
+      items: comments.map((comment) => mapCommentToView(comment, userId)),
     });
   },
 };

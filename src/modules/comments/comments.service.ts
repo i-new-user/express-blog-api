@@ -2,7 +2,10 @@ import { ObjectId } from 'mongodb';
 import { postsRepository } from '../posts/posts.repository';
 import { usersRepository } from '../users/users.repository';
 import { commentsRepository } from './comments.repository';
-import { CommentDbModel } from './domain/comment.entity';
+import {
+  CommentDbModel,
+  LikeStatus,
+} from './domain/comment.entity';
 import { CommentInputDto } from './dto/comment.input-dto';
 import { CommentViewDto } from './dto/comment.view-dto';
 import { mapCommentToView } from './comments.mapper';
@@ -39,11 +42,12 @@ export const commentsService = {
         userLogin: user.login,
       },
       createdAt: new Date().toISOString(),
+      likes: [],
     };
 
     await commentsRepository.createComment(newComment);
 
-    return mapCommentToView(newComment);
+    return mapCommentToView(newComment, userId);
   },
 
   async updateComment(
@@ -62,6 +66,33 @@ export const commentsService = {
     }
 
     await commentsRepository.updateComment(commentId, input.content);
+
+    return { status: 'success' };
+  },
+
+  async updateLikeStatus(
+    commentId: string,
+    userId: string,
+    likeStatus: LikeStatus,
+  ): Promise<CommentMutationResult> {
+    const comment = await commentsRepository.findCommentById(commentId);
+
+    if (!comment) {
+      return { status: 'not-found' };
+    }
+
+    const user = await usersRepository.findById(userId);
+
+    if (!user) {
+      return { status: 'not-found' };
+    }
+
+    await commentsRepository.updateLikeStatus(
+      commentId,
+      user._id.toString(),
+      user.login,
+      likeStatus,
+    );
 
     return { status: 'success' };
   },
