@@ -54,11 +54,15 @@ app.use(
     '/auth/registration',
     '/auth/registration-confirmation',
     '/auth/registration-email-resending',
+    '/auth/password-recovery',
+    '/auth/new-password',
 
     '/hometask_09/api/auth/login',
     '/hometask_09/api/auth/registration',
     '/hometask_09/api/auth/registration-confirmation',
     '/hometask_09/api/auth/registration-email-resending',
+    '/hometask_09/api/auth/password-recovery',
+    '/hometask_09/api/auth/new-password',
   ],
   rateLimitMiddleware,
 );

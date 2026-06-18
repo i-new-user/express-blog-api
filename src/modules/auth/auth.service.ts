@@ -2,19 +2,21 @@ import bcrypt from 'bcrypt';
 import { add } from 'date-fns';
 import { ObjectId } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
+
 import { env } from '../../config/env';
 import { jwtHelper } from '../../common/helpers/jwt/jwt.helper';
 import {
   getDuplicateKeyField,
   isDuplicateKeyError,
 } from '../../common/helpers/mongo-error.helper';
+
 import { usersRepository } from '../users/users.repository';
 import { UserDbModel } from '../users/domain/user.entity';
 import { emailManager } from './email/email.manager';
 import { securityDevicesRepository } from './devices/security-devices.repository';
 import { SecurityDeviceDbModel } from './devices/security-device.entity';
+
 import { LoginInputDto } from './dto/login.input-dto';
-import { LoginSuccessViewDto } from './dto/login-success.view-dto';
 import { MeViewDto } from './dto/me.view-dto';
 import { RegistrationInputDto } from './dto/registration.input-dto';
 import { RegistrationConfirmationCodeInputDto } from './dto/registration-confirmation-code.input-dto';
@@ -123,28 +125,28 @@ export const authService = {
   },
 
   async logout(
-  userId: string,
-  deviceId: string,
-  tokenIssuedAt: string,
-): Promise<boolean> {
-  const device =
-    await securityDevicesRepository.findByDeviceIdAndLastActiveDate(
-      deviceId,
-      tokenIssuedAt,
-    );
+    userId: string,
+    deviceId: string,
+    tokenIssuedAt: string,
+  ): Promise<boolean> {
+    const device =
+      await securityDevicesRepository.findByDeviceIdAndLastActiveDate(
+        deviceId,
+        tokenIssuedAt,
+      );
 
-  if (!device) {
-    return false;
-  }
+    if (!device) {
+      return false;
+    }
 
-  if (device.userId !== userId) {
-    return false;
-  }
+    if (device.userId !== userId) {
+      return false;
+    }
 
-  await securityDevicesRepository.deleteByDeviceId(deviceId);
+    await securityDevicesRepository.deleteByDeviceId(deviceId);
 
-  return true;
-},
+    return true;
+  },
 
   async getMe(userId: string): Promise<MeViewDto | null> {
     const user = await usersRepository.findById(userId);
@@ -162,7 +164,6 @@ export const authService = {
 
   async registration(input: RegistrationInputDto): Promise<RegistrationResult> {
     const passwordHash = await bcrypt.hash(input.password, env.bcryptSaltRounds);
-
     const confirmationCode = uuidv4();
 
     const newUser: UserDbModel = {
@@ -175,6 +176,8 @@ export const authService = {
         confirmationCode,
         expirationDate: add(new Date(), { hours: 1 }),
         isConfirmed: false,
+        recoveryCode: null,
+        recoveryCodeExpirationDate: null,
       },
     };
 
@@ -246,43 +249,48 @@ export const authService = {
   },
 
   async passwordRecovery(email: string): Promise<void> {
-  const user = await usersRepository.findByEmail(email);
+    const user = await usersRepository.findByEmail(email);
 
-  // ВСЕГДА 204 — даже если нет пользователя
-  if (!user) return;
+    if (!user) {
+      return;
+    }
 
-  const recoveryCode = uuidv4();
-  const expirationDate = add(new Date(), { hours: 1 });
+    const recoveryCode = uuidv4();
+    const expirationDate = add(new Date(), { hours: 1 });
 
-  await usersRepository.updateRecoveryCode(
-    user._id,
-    recoveryCode,
-    expirationDate,
-  );
+    const isUpdated = await usersRepository.updateRecoveryCode(
+      user._id,
+      recoveryCode,
+      expirationDate,
+    );
 
-  await emailManager.sendPasswordRecoveryEmail(email, recoveryCode);
-},
+    if (!isUpdated) {
+      return;
+    }
 
-async newPassword(
-  newPassword: string,
-  recoveryCode: string,
-): Promise<boolean> {
-  const user = await usersRepository.findByRecoveryCode(recoveryCode);
+    await emailManager.sendPasswordRecoveryEmail(email, recoveryCode);
+  },
 
-  if (!user) return false;
+  async newPassword(
+    newPassword: string,
+    recoveryCode: string,
+  ): Promise<boolean> {
+    const user = await usersRepository.findByRecoveryCode(recoveryCode);
 
-  if (
-    !user.emailConfirmation.recoveryCodeExpirationDate ||
-    user.emailConfirmation.recoveryCodeExpirationDate < new Date()
-  ) {
-    return false;
-  }
+    if (!user) {
+      return false;
+    }
 
-  const passwordHash = await bcrypt.hash(
-    newPassword,
-    env.bcryptSaltRounds,
-  );
+    if (!user.emailConfirmation.recoveryCodeExpirationDate) {
+      return false;
+    }
 
-  return usersRepository.updatePassword(user._id, passwordHash);
-},
+    if (user.emailConfirmation.recoveryCodeExpirationDate < new Date()) {
+      return false;
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, env.bcryptSaltRounds);
+
+    return usersRepository.updatePassword(user._id, passwordHash);
+  },
 };
