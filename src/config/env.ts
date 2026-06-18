@@ -34,12 +34,10 @@ export const env = {
 
   accessTokenSecret: process.env.ACCESS_TOKEN_SECRET as string,
 
-  // ВАЖНО для Homework 11:
-  // автотесты длинные, access token не должен протухать посреди сценария.
-  accessTokenExpiresIn:
-    process.env.NODE_ENV === 'test'
-      ? '5m'
-      : process.env.ACCESS_TOKEN_EXPIRES_IN || '10m',
+  // ВАЖНО:
+  // Для Homework 11 access token должен жить достаточно долго,
+  // иначе длинные сценарии лайков падают с 401.
+  accessTokenExpiresIn: '5m',
 
   refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET as string,
   refreshTokenExpires: process.env.REFRESH_TOKEN_EXPIRES || '20s',
