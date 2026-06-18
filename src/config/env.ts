@@ -33,7 +33,13 @@ export const env = {
   adminPassword: process.env.ADMIN_PASSWORD as string,
 
   accessTokenSecret: process.env.ACCESS_TOKEN_SECRET as string,
-  accessTokenExpiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || '10m',
+
+  // ВАЖНО для Homework 11:
+  // автотесты длинные, access token не должен протухать посреди сценария.
+  accessTokenExpiresIn:
+    process.env.NODE_ENV === 'test'
+      ? '5m'
+      : process.env.ACCESS_TOKEN_EXPIRES_IN || '10m',
 
   refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET as string,
   refreshTokenExpires: process.env.REFRESH_TOKEN_EXPIRES || '20s',
