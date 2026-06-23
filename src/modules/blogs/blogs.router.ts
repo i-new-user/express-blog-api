@@ -1,11 +1,12 @@
 import { Router } from 'express';
-import { blogsController } from './blogs.controller';
-import { validateBody } from '../../common/middlewares/zod-validation.middleware';
-import { blogInputSchema } from './validation/blog.schema';
+import { asyncHandler } from '../../common/helpers/async-handler';
 import { basicAuthMiddleware } from '../../common/middlewares/basic-auth.middleware';
+import { validateBody } from '../../common/middlewares/zod-validation.middleware';
+import { optionalBearerAuthMiddleware } from '../auth/guards/optional-bearer-auth.middleware';
 import { postsController } from '../posts/posts.controller';
 import { blogPostInputSchema } from '../posts/validation/post.schema';
-import { asyncHandler } from '../../common/helpers/async-handler';
+import { blogsController } from './blogs.controller';
+import { blogInputSchema } from './validation/blog.schema';
 
 export const blogsRouter = Router();
 
@@ -14,6 +15,7 @@ blogsRouter.get('/:id', asyncHandler(blogsController.getBlogById));
 
 blogsRouter.get(
   '/:blogId/posts',
+  optionalBearerAuthMiddleware,
   asyncHandler(postsController.getPostsByBlogId),
 );
 

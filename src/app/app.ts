@@ -75,6 +75,13 @@ app.use(
     '/hometask_11/api/auth/registration-email-resending',
     '/hometask_11/api/auth/password-recovery',
     '/hometask_11/api/auth/new-password',
+
+    '/hometask_12/api/auth/login',
+    '/hometask_12/api/auth/registration',
+    '/hometask_12/api/auth/registration-confirmation',
+    '/hometask_12/api/auth/registration-email-resending',
+    '/hometask_12/api/auth/password-recovery',
+    '/hometask_12/api/auth/new-password',
   ],
   rateLimitMiddleware,
 );
@@ -84,6 +91,7 @@ const h08Prefix = '/hometask_08/api';
 const h09Prefix = '/hometask_09/api';
 const h10Prefix = '/hometask_10/api';
 const h11Prefix = '/hometask_11/api';
+const h12Prefix = '/hometask_12/api';
 
 const registerRoutes = (prefix: string) => {
   app.use(`${prefix}/blogs`, blogsRouter);
@@ -106,5 +114,6 @@ registerRoutes(h08Prefix);
 registerRoutes(h09Prefix);
 registerRoutes(h10Prefix);
 registerRoutes(h11Prefix);
+registerRoutes(h12Prefix);
 
 app.use(globalErrorMiddleware);

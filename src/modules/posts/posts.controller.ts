@@ -1,18 +1,22 @@
 import { Request, Response } from 'express';
 import { blogsRepository } from '../blogs/blogs.repository';
+import { CommentLikeStatusInputDto } from '../comments/validation/validation-like.schema';
 import { BlogPostInputDto, PostInputDto } from './dto/post.input-dto';
 import { postsQueryRepository } from './posts.query-repository';
 import { postsService } from './posts.service';
 
 export const postsController = {
   async getPosts(req: Request, res: Response): Promise<void> {
-    const result = await postsQueryRepository.findPosts(req.query);
+    const result = await postsQueryRepository.findPosts(req.query, req.userId);
 
     res.status(200).json(result);
   },
 
   async getPostById(req: Request<{ id: string }>, res: Response): Promise<void> {
-    const post = await postsQueryRepository.findPostById(req.params.id);
+    const post = await postsQueryRepository.findPostById(
+      req.params.id,
+      req.userId,
+    );
 
     if (!post) {
       res.sendStatus(404);
@@ -26,7 +30,7 @@ export const postsController = {
     req: Request<object, object, PostInputDto>,
     res: Response,
   ): Promise<void> {
-    const createdPost = await postsService.createPost(req.body);
+    const createdPost = await postsService.createPost(req.body, req.userId);
 
     if (!createdPost) {
       res.sendStatus(400);
@@ -41,6 +45,29 @@ export const postsController = {
     res: Response,
   ): Promise<void> {
     const result = await postsService.updatePost(req.params.id, req.body);
+
+    if (result.status === 'not-found') {
+      res.sendStatus(404);
+      return;
+    }
+
+    res.sendStatus(204);
+  },
+
+  async updateLikeStatus(
+    req: Request<{ postId: string }, object, CommentLikeStatusInputDto>,
+    res: Response,
+  ): Promise<void> {
+    if (!req.userId) {
+      res.sendStatus(401);
+      return;
+    }
+
+    const result = await postsService.updateLikeStatus(
+      req.params.postId,
+      req.userId,
+      req.body.likeStatus,
+    );
 
     if (result.status === 'not-found') {
       res.sendStatus(404);
@@ -75,6 +102,7 @@ export const postsController = {
     const result = await postsQueryRepository.findPostsByBlogId(
       req.params.blogId,
       req.query,
+      req.userId,
     );
 
     res.status(200).json(result);
@@ -87,6 +115,7 @@ export const postsController = {
     const createdPost = await postsService.createPostForBlog(
       req.params.blogId,
       req.body,
+      req.userId,
     );
 
     if (!createdPost) {

@@ -1,17 +1,22 @@
 import { Router } from 'express';
+import { asyncHandler } from '../../common/helpers/async-handler';
 import { basicAuthMiddleware } from '../../common/middlewares/basic-auth.middleware';
 import { validateBody } from '../../common/middlewares/zod-validation.middleware';
 import { bearerAuthMiddleware } from '../auth/guards/bearer-auth.middleware';
 import { optionalBearerAuthMiddleware } from '../auth/guards/optional-bearer-auth.middleware';
 import { commentsController } from '../comments/comments.controller';
 import { commentInputSchema } from '../comments/validation/comment.schema';
+import { commentLikeStatusSchema } from '../comments/validation/validation-like.schema';
 import { postsController } from './posts.controller';
 import { postInputSchema } from './validation/post.schema';
-import { asyncHandler } from '../../common/helpers/async-handler';
 
 export const postsRouter = Router();
 
-postsRouter.get('/', asyncHandler(postsController.getPosts));
+postsRouter.get(
+  '/',
+  optionalBearerAuthMiddleware,
+  asyncHandler(postsController.getPosts),
+);
 
 postsRouter.get(
   '/:postId/comments',
@@ -26,7 +31,18 @@ postsRouter.post(
   asyncHandler(commentsController.createCommentForPost),
 );
 
-postsRouter.get('/:id', asyncHandler(postsController.getPostById));
+postsRouter.put(
+  '/:postId/like-status',
+  bearerAuthMiddleware,
+  validateBody(commentLikeStatusSchema),
+  asyncHandler(postsController.updateLikeStatus),
+);
+
+postsRouter.get(
+  '/:id',
+  optionalBearerAuthMiddleware,
+  asyncHandler(postsController.getPostById),
+);
 
 postsRouter.post(
   '/',

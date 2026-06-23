@@ -23,7 +23,7 @@ const allowedPostSortFields = [
 type PostSortField = (typeof allowedPostSortFields)[number];
 
 export const postsQueryRepository = {
-  async findPostById(id: string) {
+  async findPostById(id: string, userId?: string) {
     if (!ObjectId.isValid(id)) {
       return null;
     }
@@ -32,10 +32,10 @@ export const postsQueryRepository = {
       _id: new ObjectId(id),
     });
 
-    return post ? mapPostToView(post) : null;
+    return post ? mapPostToView(post, userId) : null;
   },
 
-  async findPosts(query: PaginationQuery) {
+  async findPosts(query: PaginationQuery, userId?: string) {
     const pagination = getPaginationParams(query);
 
     const sortBy = getAllowedSortBy<PostSortField>(
@@ -59,11 +59,15 @@ export const postsQueryRepository = {
       totalCount,
       pageNumber: pagination.pageNumber,
       pageSize: pagination.pageSize,
-      items: posts.map(mapPostToView),
+      items: posts.map((post) => mapPostToView(post, userId)),
     });
   },
 
-  async findPostsByBlogId(blogId: string, query: PaginationQuery) {
+  async findPostsByBlogId(
+    blogId: string,
+    query: PaginationQuery,
+    userId?: string,
+  ) {
     const pagination = getPaginationParams(query);
 
     const sortBy = getAllowedSortBy<PostSortField>(
@@ -87,7 +91,7 @@ export const postsQueryRepository = {
       totalCount,
       pageNumber: pagination.pageNumber,
       pageSize: pagination.pageSize,
-      items: posts.map(mapPostToView),
+      items: posts.map((post) => mapPostToView(post, userId)),
     });
   },
 };

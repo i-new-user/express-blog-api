@@ -44,6 +44,13 @@ export const createMongoIndexes = async (db: Db): Promise<void> => {
       },
     ),
 
+    db.collection('posts').createIndex(
+      { 'likes.userId': 1 },
+      {
+        name: 'posts_likes_user_id_idx',
+      },
+    ),
+
     db.collection('comments').createIndex(
       { postId: 1, createdAt: -1 },
       {
