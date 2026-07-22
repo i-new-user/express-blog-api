@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb';
+import { Types } from 'mongoose';
 import { blogsRepository } from '../blogs/blogs.repository';
 import { LikeStatus } from '../comments/domain/comment.entity';
 import { usersRepository } from '../users/users.repository';
@@ -21,7 +21,7 @@ export const postsService = {
     }
 
     const newPost: PostDbModel = {
-      _id: new ObjectId(),
+      _id: new Types.ObjectId(),
       title: input.title,
       shortDescription: input.shortDescription,
       content: input.content,

@@ -1,4 +1,3 @@
-import { Filter, ObjectId } from 'mongodb';
 import {
   buildPaginatedView,
   getPaginationParams,
@@ -8,11 +7,10 @@ import {
   getAllowedSortBy,
 } from '../../common/helpers/query.helper';
 import { PaginationQuery } from '../../common/types/pagination.types';
-import { getDb } from '../../db/mongo-client';
 import { UserDbModel } from './domain/user.entity';
+import { UserModel } from './domain/user.model';
 import { mapUserToView } from './users.mapper';
-
-const getUsersCollection = () => getDb().collection<UserDbModel>('users');
+import { isValidObjectId, QueryFilter } from 'mongoose';
 
 const allowedUserSortFields = ['createdAt', 'login', 'email'] as const;
 
@@ -24,14 +22,13 @@ type UsersQuery = PaginationQuery & {
 };
 
 export const usersQueryRepository = {
+  
   async findUserById(id: string) {
-    if (!ObjectId.isValid(id)) {
+    if (!isValidObjectId(id)) {
       return null;
     }
 
-    const user = await getUsersCollection().findOne({
-      _id: new ObjectId(id),
-    });
+    const user = await UserModel.findById(id).lean();
 
     return user ? mapUserToView(user) : null;
   },
@@ -45,7 +42,7 @@ export const usersQueryRepository = {
       'createdAt',
     );
 
-    const orFilters: Filter<UserDbModel>[] = [];
+    const orFilters: QueryFilter<UserDbModel>[] = [];
 
     if (query.searchLoginTerm) {
       orFilters.push({
@@ -65,17 +62,16 @@ export const usersQueryRepository = {
       });
     }
 
-    const filter: Filter<UserDbModel> =
+    const filter: QueryFilter<UserDbModel> =
       orFilters.length > 0 ? { $or: orFilters } : {};
 
-    const totalCount = await getUsersCollection().countDocuments(filter);
+    const totalCount = await UserModel.countDocuments(filter);
 
-    const users = await getUsersCollection()
-      .find(filter)
+    const users = await UserModel.find(filter)
       .sort({ [sortBy]: pagination.sortDirection })
       .skip(pagination.skip)
       .limit(pagination.pageSize)
-      .toArray();
+      .lean();
 
     return buildPaginatedView({
       totalCount,

@@ -1,79 +1,63 @@
-import { ObjectId } from 'mongodb';
-import { getDb } from '../../db/mongo-client';
+import { isValidObjectId, Types } from 'mongoose';
 import { UserDbModel } from './domain/user.entity';
-
-const getUsersCollection = () => getDb().collection<UserDbModel>('users');
+import { UserModel } from './domain/user.model';
 
 export const usersRepository = {
   async createUser(user: UserDbModel): Promise<void> {
-    await getUsersCollection().insertOne(user);
+    await UserModel.create(user);
   },
 
   async findById(id: string): Promise<UserDbModel | null> {
-    if (!ObjectId.isValid(id)) {
+    if (!isValidObjectId(id)) {
       return null;
     }
 
-    return getUsersCollection().findOne({ _id: new ObjectId(id) });
+    return UserModel.findById(id).lean();
   },
 
   async findByLoginOrEmail(loginOrEmail: string): Promise<UserDbModel | null> {
-    return getUsersCollection().findOne({
+    return UserModel.findOne({
       $or: [{ login: loginOrEmail }, { email: loginOrEmail }],
-    });
+    }).lean();
   },
 
   async findByLogin(login: string): Promise<UserDbModel | null> {
-    return getUsersCollection().findOne({ login });
+    return UserModel.findOne({ login }).lean();
   },
 
   async findByEmail(email: string): Promise<UserDbModel | null> {
-    return getUsersCollection().findOne({ email });
+    return UserModel.findOne({ email }).lean();
   },
 
   async isLoginExists(login: string): Promise<boolean> {
-    const user = await getUsersCollection().findOne(
-      { login },
-      { projection: { _id: 1 } },
-    );
-
-    return !!user;
+    return UserModel.exists({ login }).then(Boolean);
   },
 
   async isEmailExists(email: string): Promise<boolean> {
-    const user = await getUsersCollection().findOne(
-      { email },
-      { projection: { _id: 1 } },
-    );
-
-    return !!user;
+    return UserModel.exists({ email }).then(Boolean);
   },
 
   async findByConfirmationCode(code: string): Promise<UserDbModel | null> {
-    return getUsersCollection().findOne({
+    return UserModel.findOne({
       'emailConfirmation.confirmationCode': code,
-    });
+    }).lean();
   },
 
-  async confirmEmail(userId: ObjectId): Promise<boolean> {
-    const result = await getUsersCollection().updateOne(
+  async confirmEmail(userId: Types.ObjectId): Promise<boolean> {
+    const result = await UserModel.updateOne(
       { _id: userId },
-      {
-        $set: {
-          'emailConfirmation.isConfirmed': true,
-        },
-      },
+      { $set: { 'emailConfirmation.isConfirmed': true } },
     );
 
     return result.modifiedCount === 1;
   },
 
   async updateConfirmationCode(
-    userId: ObjectId,
+    userId: Types.ObjectId,
     confirmationCode: string,
     expirationDate: Date,
   ): Promise<boolean> {
-    const result = await getUsersCollection().updateOne(
+    const result = await UserModel.updateOne(
       { _id: userId },
       {
         $set: {
@@ -87,17 +71,15 @@ export const usersRepository = {
   },
 
   async findByRecoveryCode(code: string): Promise<UserDbModel | null> {
-    return getUsersCollection().findOne({
-      'emailConfirmation.recoveryCode': code,
-    });
+    return UserModel.findOne({ 'emailConfirmation.recoveryCode': code }).lean();
   },
 
   async updateRecoveryCode(
-    userId: ObjectId,
+    userId: Types.ObjectId,
     recoveryCode: string,
     expirationDate: Date,
   ): Promise<boolean> {
-    const result = await getUsersCollection().updateOne(
+    const result = await UserModel.updateOne(
       { _id: userId },
       {
         $set: {
@@ -111,10 +93,10 @@ export const usersRepository = {
   },
 
   async updatePassword(
-    userId: ObjectId,
+    userId: Types.ObjectId,
     passwordHash: string,
   ): Promise<boolean> {
-    const result = await getUsersCollection().updateOne(
+    const result = await UserModel.updateOne(
       { _id: userId },
       {
         $set: {
@@ -129,13 +111,11 @@ export const usersRepository = {
   },
 
   async deleteUser(id: string): Promise<boolean> {
-    if (!ObjectId.isValid(id)) {
+    if (!isValidObjectId(id)) {
       return false;
     }
 
-    const result = await getUsersCollection().deleteOne({
-      _id: new ObjectId(id),
-    });
+    const result = await UserModel.deleteOne({ _id: id });
 
     return result.deletedCount === 1;
   },

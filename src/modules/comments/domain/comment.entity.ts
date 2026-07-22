@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb';
+import { HydratedDocument, Types } from 'mongoose';
 
 export type LikeStatus = 'None' | 'Like' | 'Dislike';
 
@@ -10,7 +10,7 @@ export type CommentLikeDbModel = {
 };
 
 export type CommentDbModel = {
-  _id: ObjectId;
+  _id: Types.ObjectId;
   postId: string;
   content: string;
   commentatorInfo: {
@@ -20,3 +20,5 @@ export type CommentDbModel = {
   createdAt: string;
   likes: CommentLikeDbModel[];
 };
+
+export type CommentDocument = HydratedDocument<CommentDbModel>;

@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb';
+import { Types } from 'mongoose';
 import { postsRepository } from '../posts/posts.repository';
 import { usersRepository } from '../users/users.repository';
 import { commentsRepository } from './comments.repository';
@@ -34,7 +34,7 @@ export const commentsService = {
     }
 
     const newComment: CommentDbModel = {
-      _id: new ObjectId(),
+      _id: new Types.ObjectId(),
       postId,
       content: input.content,
       commentatorInfo: {

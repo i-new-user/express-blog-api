@@ -1,6 +1,7 @@
 import { securityDevicesRepository } from '../auth/devices/security-devices.repository';
 
 export const securityService = {
+ 
   async deleteAllOtherDevices(
     userId: string,
     currentDeviceId: string,

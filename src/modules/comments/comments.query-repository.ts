@@ -1,16 +1,13 @@
-import { Filter, ObjectId } from 'mongodb';
+import { isValidObjectId, QueryFilter } from 'mongoose';
 import {
   buildPaginatedView,
   getPaginationParams,
 } from '../../common/helpers/pagination.helper';
 import { getAllowedSortBy } from '../../common/helpers/query.helper';
 import { PaginationQuery } from '../../common/types/pagination.types';
-import { getDb } from '../../db/mongo-client';
-import { CommentDbModel } from './domain/comment.entity';
 import { mapCommentToView } from './comments.mapper';
-
-const getCommentsCollection = () =>
-  getDb().collection<CommentDbModel>('comments');
+import { CommentDbModel } from './domain/comment.entity';
+import { CommentModel } from './domain/comment.model';
 
 const allowedCommentSortFields = ['createdAt', 'content'] as const;
 
@@ -18,13 +15,11 @@ type CommentSortField = (typeof allowedCommentSortFields)[number];
 
 export const commentsQueryRepository = {
   async findCommentById(id: string, userId?: string) {
-    if (!ObjectId.isValid(id)) {
+    if (!isValidObjectId(id)) {
       return null;
     }
 
-    const comment = await getCommentsCollection().findOne({
-      _id: new ObjectId(id),
-    });
+    const comment = await CommentModel.findById(id).lean();
 
     return comment ? mapCommentToView(comment, userId) : null;
   },
@@ -42,16 +37,15 @@ export const commentsQueryRepository = {
       'createdAt',
     );
 
-    const filter: Filter<CommentDbModel> = { postId };
+    const filter: QueryFilter<CommentDbModel> = { postId };
 
-    const totalCount = await getCommentsCollection().countDocuments(filter);
+    const totalCount = await CommentModel.countDocuments(filter);
 
-    const comments = await getCommentsCollection()
-      .find(filter)
+    const comments = await CommentModel.find(filter)
       .sort({ [sortBy]: pagination.sortDirection })
       .skip(pagination.skip)
       .limit(pagination.pageSize)
-      .toArray();
+      .lean();
 
     return buildPaginatedView({
       totalCount,

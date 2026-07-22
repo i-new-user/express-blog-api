@@ -1,16 +1,9 @@
-import { getDb } from '../../db/mongo-client';
+import { SecurityDeviceModel } from '../auth/devices/security-device.model';
 import { DeviceViewDto } from './dto/device.view-dto';
 
 export const securityQueryRepository = {
-  async getDevicesByUserId(
-    userId: string,
-  ): Promise<DeviceViewDto[]> {
-    const db = getDb();
-
-    const devices = await db
-      .collection('securityDevices')
-      .find({ userId })
-      .toArray();
+  async getDevicesByUserId(userId: string): Promise<DeviceViewDto[]> {
+    const devices = await SecurityDeviceModel.find({ userId }).lean();
 
     return devices.map((device) => ({
       ip: device.ip,

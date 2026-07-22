@@ -1,23 +1,19 @@
-import { ObjectId } from 'mongodb';
-import { getDb } from '../../db/mongo-client';
+import { isValidObjectId } from 'mongoose';
 import { LikeStatus } from '../comments/domain/comment.entity';
 import { PostDbModel } from './domain/post.entity';
-
-const getPostsCollection = () => getDb().collection<PostDbModel>('posts');
+import { PostModel } from './domain/post.model';
 
 export const postsRepository = {
   async createPost(post: PostDbModel): Promise<void> {
-    await getPostsCollection().insertOne(post);
+    await PostModel.create(post);
   },
 
   async findPostById(id: string): Promise<PostDbModel | null> {
-    if (!ObjectId.isValid(id)) {
+    if (!isValidObjectId(id)) {
       return null;
     }
 
-    return getPostsCollection().findOne({
-      _id: new ObjectId(id),
-    });
+    return PostModel.findById(id).lean();
   },
 
   async updatePost(
@@ -30,12 +26,12 @@ export const postsRepository = {
       blogName: string;
     },
   ): Promise<boolean> {
-    if (!ObjectId.isValid(id)) {
+    if (!isValidObjectId(id)) {
       return false;
     }
 
-    const result = await getPostsCollection().updateOne(
-      { _id: new ObjectId(id) },
+    const result = await PostModel.updateOne(
+      { _id: id },
       {
         $set: {
           title: input.title,
@@ -56,20 +52,14 @@ export const postsRepository = {
     userLogin: string,
     likeStatus: LikeStatus,
   ): Promise<boolean> {
-    if (!ObjectId.isValid(postId)) {
+    if (!isValidObjectId(postId)) {
       return false;
     }
 
-    const _id = new ObjectId(postId);
-
     if (likeStatus === 'None') {
-      const result = await getPostsCollection().updateOne(
-        { _id },
-        {
-          $pull: {
-            likes: { userId },
-          },
-        },
+      const result = await PostModel.updateOne(
+        { _id: postId },
+        { $pull: { likes: { userId } } },
       );
 
       return result.matchedCount === 1;
@@ -77,11 +67,8 @@ export const postsRepository = {
 
     const addedAt = new Date().toISOString();
 
-    const updateExistingResult = await getPostsCollection().updateOne(
-      {
-        _id,
-        'likes.userId': userId,
-      },
+    const updateExistingResult = await PostModel.updateOne(
+      { _id: postId, 'likes.userId': userId },
       {
         $set: {
           'likes.$.status': likeStatus,
@@ -95,11 +82,8 @@ export const postsRepository = {
       return true;
     }
 
-    const addNewResult = await getPostsCollection().updateOne(
-      {
-        _id,
-        'likes.userId': { $ne: userId },
-      },
+    const addNewResult = await PostModel.updateOne(
+      { _id: postId, 'likes.userId': { $ne: userId } },
       {
         $push: {
           likes: {
@@ -116,13 +100,11 @@ export const postsRepository = {
   },
 
   async deletePost(id: string): Promise<boolean> {
-    if (!ObjectId.isValid(id)) {
+    if (!isValidObjectId(id)) {
       return false;
     }
 
-    const result = await getPostsCollection().deleteOne({
-      _id: new ObjectId(id),
-    });
+    const result = await PostModel.deleteOne({ _id: id });
 
     return result.deletedCount === 1;
   },

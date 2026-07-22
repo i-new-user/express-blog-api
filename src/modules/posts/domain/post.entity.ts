@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb';
+import { HydratedDocument, Types } from 'mongoose';
 import { LikeStatus } from '../../comments/domain/comment.entity';
 
 export type PostLikeDbModel = {
@@ -9,7 +9,7 @@ export type PostLikeDbModel = {
 };
 
 export type PostDbModel = {
-  _id: ObjectId;
+  _id: Types.ObjectId;
   title: string;
   shortDescription: string;
   content: string;
@@ -18,3 +18,5 @@ export type PostDbModel = {
   createdAt: string;
   likes: PostLikeDbModel[];
 };
+
+export type PostDocument = HydratedDocument<PostDbModel>;

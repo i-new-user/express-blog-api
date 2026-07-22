@@ -1,25 +1,16 @@
-// import { Filter, ObjectId } from 'mongodb';
-
-
-import {QueryFilter, isValidObjectId} from 'mongoose'
-
+import { isValidObjectId, QueryFilter } from 'mongoose';
 import {
   buildPaginatedView,
   getPaginationParams,
 } from '../../common/helpers/pagination.helper';
-
 import {
   escapeRegex,
   getAllowedSortBy,
 } from '../../common/helpers/query.helper';
 import { PaginationQuery } from '../../common/types/pagination.types';
-
-// import { getDb } from '../../db/mongo-client';
-// import { BlogDbModel } from './domain/blog.entity';
 import { mapBlogToView } from './blogs.mapper';
+import { BlogDbModel } from './domain/blog.entity';
 import { BlogModel } from './domain/blog.model';
-
-// const getBlogsCollection = () => getDb().collection<BlogDbModel>('blogs');
 
 const allowedBlogSortFields = [
   'createdAt',
@@ -35,20 +26,13 @@ type BlogsQuery = PaginationQuery & {
   searchNameTerm?: string;
 };
 
-type BlogFilter = {
-  name?: {
-    $regex: string;
-    $options: string;
-  };
-};
-
 export const blogsQueryRepository = {
   async findBlogById(id: string) {
     if (!isValidObjectId(id)) {
       return null;
     }
 
-    const blog = await BlogModel.findById(id)
+    const blog = await BlogModel.findById(id).lean();
 
     return blog ? mapBlogToView(blog) : null;
   },
@@ -62,7 +46,7 @@ export const blogsQueryRepository = {
       'createdAt',
     );
 
-    const filter: BlogFilter = query.searchNameTerm
+    const filter: QueryFilter<BlogDbModel> = query.searchNameTerm
       ? {
           name: {
             $regex: escapeRegex(query.searchNameTerm),
@@ -73,13 +57,11 @@ export const blogsQueryRepository = {
 
     const totalCount = await BlogModel.countDocuments(filter);
 
-    const blogs = await BlogModel
-      .find(filter)
+    const blogs = await BlogModel.find(filter)
       .sort({ [sortBy]: pagination.sortDirection })
       .skip(pagination.skip)
       .limit(pagination.pageSize)
-      .lean()
-
+      .lean();
 
     return buildPaginatedView({
       totalCount,

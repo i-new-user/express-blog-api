@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { add } from 'date-fns';
-import { ObjectId } from 'mongodb';
+import { Types } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 
 import { env } from '../../config/env';
@@ -32,6 +32,7 @@ type LoginResult = {
 };
 
 export const authService = {
+
   async login(
     input: LoginInputDto,
     ip: string,
@@ -67,7 +68,7 @@ export const authService = {
     }
 
     const device: SecurityDeviceDbModel = {
-      _id: new ObjectId(),
+      _id: new Types.ObjectId(),
       userId: user._id.toString(),
       deviceId,
       ip,
@@ -89,6 +90,7 @@ export const authService = {
     deviceId: string,
     tokenIssuedAt: string,
   ): Promise<LoginResult | null> {
+    
     const device =
       await securityDevicesRepository.findByDeviceIdAndLastActiveDate(
         deviceId,
@@ -167,7 +169,7 @@ export const authService = {
     const confirmationCode = uuidv4();
 
     const newUser: UserDbModel = {
-      _id: new ObjectId(),
+      _id: new Types.ObjectId(),
       login: input.login,
       email: input.email,
       passwordHash,

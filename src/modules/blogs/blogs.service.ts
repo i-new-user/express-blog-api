@@ -1,22 +1,17 @@
-// import { ObjectId } from 'mongodb';
 import { blogsRepository } from './blogs.repository';
-// import { BlogDbModel } from './domain/blog.entity';
+import { mapBlogToView } from './blogs.mapper';
 import { BlogInputDto } from './dto/blog.inputDto';
 import { BlogViewDto } from './dto/blog.viewDto';
-import { mapBlogToView } from './blogs.mapper';
 
 export const blogsService = {
   async createBlog(input: BlogInputDto): Promise<BlogViewDto> {
-    const newBlog = {
-      // _id: new ObjectId(),
+    const createdBlog = await blogsRepository.createBlog({
       name: input.name,
       description: input.description,
       websiteUrl: input.websiteUrl,
       createdAt: new Date().toISOString(),
       isMembership: false,
-    };
-
-    const createdBlog = await blogsRepository.createBlog(newBlog);
+    });
 
     return mapBlogToView(createdBlog);
   },

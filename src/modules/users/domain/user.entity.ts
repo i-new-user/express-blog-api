@@ -1,17 +1,20 @@
-import { ObjectId } from 'mongodb'
+import { HydratedDocument, Types } from 'mongoose';
+
+export type EmailConfirmation = {
+  confirmationCode: string;
+  expirationDate: Date;
+  isConfirmed: boolean;
+  recoveryCode?: string | null;
+  recoveryCodeExpirationDate?: Date | null;
+};
 
 export type UserDbModel = {
-  _id: ObjectId
-  login: string
-  email: string
-  passwordHash: string
-  createdAt: string
-  emailConfirmation: {
-    confirmationCode: string
-    expirationDate: Date
-    isConfirmed: boolean
+  _id: Types.ObjectId;
+  login: string;
+  email: string;
+  passwordHash: string;
+  createdAt: string;
+  emailConfirmation: EmailConfirmation;
+};
 
-    recoveryCode?: string | null
-    recoveryCodeExpirationDate?: Date | null
-  }
-}
+export type UserDocument = HydratedDocument<UserDbModel>;

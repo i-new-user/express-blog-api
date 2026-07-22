@@ -3,6 +3,7 @@ import { securityQueryRepository } from './security.query-repository';
 import { securityService } from './security.service';
 
 export const securityController = {
+ 
   async getDevices(req: Request, res: Response) {
     if (!req.userId) {
       res.sendStatus(401);

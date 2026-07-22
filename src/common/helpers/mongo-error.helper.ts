@@ -1,13 +1,11 @@
-import { MongoServerError } from 'mongodb';
+import { mongo } from 'mongoose';
 
 export const isDuplicateKeyError = (error: unknown): boolean => {
-  return error instanceof MongoServerError && error.code === 11000;
+  return error instanceof mongo.MongoServerError && error.code === 11000;
 };
 
-export const getDuplicateKeyField = (
-  error: unknown,
-): string | null => {
-  if (!(error instanceof MongoServerError)) {
+export const getDuplicateKeyField = (error: unknown): string | null => {
+  if (!(error instanceof mongo.MongoServerError)) {
     return null;
   }
 

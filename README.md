@@ -1,221 +1,63 @@
-# Express Blog API
+# Backend API — hometask 13
 
-Production-ready REST API built with modern backend architecture using **Express.js**, **TypeScript**, **MongoDB**, **Zod**, **JWT**, **Docker**, and **Clean 3-Layer Architecture**.
+Учебный REST API, перенесённый с Express на NestJS.
 
-## Tech Stack
+Активное приложение реализует:
 
-### Backend
+- CRUD users без авторизации;
+- CRUD blogs без авторизации;
+- CRUD posts без авторизации;
+- создание и получение постов конкретного блога;
+- чтение комментария и списка комментариев поста;
+- чтение сохранённых likes/dislikes;
+- очистку тестовой базы.
 
-* Node.js
-* Express.js
-* TypeScript
-* MongoDB
-* Native MongoDB Driver
-* Zod validation
-* JWT Authentication
-* bcrypt password hashing
-* cookie-parser
-* cors
+Согласно заданию h13 не подключены auth, devices, Basic/Bearer Auth, валидация,
+изменение комментариев и изменение лайков.
 
-### Testing
-
-* Jest
-* Supertest
-
-### DevOps
-
-* Docker
-* Docker Compose
-* Vercel
-* GitHub
-
----
-
-## Architecture
-
-The project uses a modern **3-layer architecture**:
-
-```txt
-Routes
-   ↓
-Controllers
-   ↓
-Services (business logic)
-   ↓
-Repositories (database access)
-```
-
-Project structure:
-
-```txt
-src/
-├── app/
-├── common/
-│   ├── helpers/
-│   ├── middlewares/
-│   └── types/
-├── config/
-├── db/
-├── modules/
-│   ├── auth/
-│   ├── blogs/
-│   ├── comments/
-│   ├── posts/
-│   ├── testing/
-│   └── users/
-└── main.ts
-```
-
----
-
-## Features
-
-### Blogs
-
-* Create blog
-* Update blog
-* Delete blog
-* Get blogs list
-* Pagination
-* Search
-* Sorting
-
-### Posts
-
-* CRUD operations
-* Blog relation
-* Pagination
-* Search & sorting
-
-### Users
-
-* Registration
-* Password hashing with bcrypt
-* Unique login/email validation
-* Pagination
-
-### Auth
-
-* Login via login/email
-* JWT Access Token
-* Protected routes
-* `/auth/me`
-
-### Comments
-
-* Create comment
-* Edit own comment
-* Delete own comment
-* Authorization checks
-* Post comments pagination
-
----
-
-## Environment Variables
-
-Create `.env`
-
-```env
-PORT=3000
-MONGO_URL=mongodb://localhost:27017
-DB_NAME=express_blog_api
-
-ACCESS_TOKEN_SECRET=your-secret
-ACCESS_TOKEN_EXPIRES_IN=10m
-
-REFRESH_TOKEN_SECRET=your-refresh-secret
-REFRESH_TOKEN_EXPIRES=20s
-
-BCRYPT_SALT_ROUNDS=10
-CLIENT_URL=http://localhost:5173
-```
-
----
-
-## Installation
-
-### Clone repository
+## Запуск
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/express-blog-api.git
-```
-
-### Install dependencies
-
-```bash
+cp .env.example .env
 yarn install
-```
-
-### Run development server
-
-```bash
 yarn dev
 ```
 
-### Run tests
+Базовый URL:
 
-```bash
-yarn test
+```text
+http://localhost:3000/hometask_13/api
 ```
 
----
-
-## Docker
-
-Run MongoDB container:
+Проверка:
 
 ```bash
-docker compose up -d
+yarn build
+yarn test:h13
 ```
 
-Stop container:
+Для e2e-теста MongoDB должна быть доступна по адресу из `.env.test`.
 
-```bash
-docker compose down
+## Активная структура
+
+```text
+src/
+  main.ts
+  nest/
+    app.module.ts
+    configure-app.ts
+    config/
+    common/
+    features/
+      users/
+      blogs/
+      posts/
+      comments/
+      testing/
 ```
 
----
+Старый Express-код пока сохранён в `src/app`, `src/modules`, `src/common` и
+`src/db` как материал для сравнения. Он не импортируется в `AppModule` и не
+публикует маршруты в запущенном Nest-приложении.
 
-## API Testing
-
-Use:
-
-* Postman
-* Thunder Client
-* Swagger (future)
-
----
-
-## Testing Coverage
-
-Project includes **integration/e2e tests** with:
-
-* Jest
-* Supertest
-
-Tested modules:
-
-* Blogs
-* Posts
-* Users
-* Auth
-* Comments
-
----
-
-## Future Improvements
-
-* Refresh Tokens
-* Email confirmation
-* Rate limiting
-* Swagger/OpenAPI
-* Redis
-* WebSockets
-* Role-based authorization
-* CI/CD pipeline
-
----
-
-## Author
-
-GitHub: https://github.com/gost29090
+Подробное объяснение миграции: [NEST_MIGRATION_GUIDE.md](./NEST_MIGRATION_GUIDE.md).

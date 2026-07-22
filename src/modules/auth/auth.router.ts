@@ -16,44 +16,21 @@ import {
 
 export const authRouter = Router();
 
+
 authRouter.post('/login', validateBody(loginInputSchema), authController.login);
 
-authRouter.post(
-  '/refresh-token',
-  refreshTokenMiddleware,
-  authController.refreshToken,
-);
+authRouter.post('/refresh-token', refreshTokenMiddleware, authController.refreshToken);
 
 authRouter.post('/logout', refreshTokenMiddleware, authController.logout);
 
 authRouter.get('/me', bearerAuthMiddleware, authController.me);
 
-authRouter.post(
-  '/registration',
-  validateBody(registrationInputSchema),
-  authController.registration,
-);
+authRouter.post( '/registration', validateBody(registrationInputSchema), authController.registration);
 
-authRouter.post(
-  '/registration-confirmation',
-  validateBody(registrationConfirmationSchema),
-  authController.confirmRegistration,
-);
+authRouter.post( '/registration-confirmation', validateBody(registrationConfirmationSchema), authController.confirmRegistration);
 
-authRouter.post(
-  '/registration-email-resending',
-  validateBody(registrationEmailResendingSchema),
-  authController.resendRegistrationEmail,
-);
+authRouter.post( '/registration-email-resending', validateBody(registrationEmailResendingSchema), authController.resendRegistrationEmail);
 
-authRouter.post(
-  '/password-recovery',
-  validateBody(passwordRecoverySchema),
-  authController.passwordRecovery,
-);
+authRouter.post( '/password-recovery', validateBody(passwordRecoverySchema), authController.passwordRecovery);
 
-authRouter.post(
-  '/new-password',
-  validateBody(newPasswordSchema),
-  authController.newPassword,
-);
+authRouter.post( '/new-password', validateBody(newPasswordSchema), authController.newPassword);

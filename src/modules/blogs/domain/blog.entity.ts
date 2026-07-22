@@ -1,6 +1,7 @@
-import { HydratedDocument } from "mongoose";
+import { HydratedDocument, Types } from 'mongoose';
 
-export type Blog = {
+export type BlogDbModel = {
+  _id: Types.ObjectId;
   name: string;
   description: string;
   websiteUrl: string;
@@ -8,4 +9,4 @@ export type Blog = {
   isMembership: boolean;
 };
 
-export type BlogDocument = HydratedDocument<Blog>
+export type BlogDocument = HydratedDocument<BlogDbModel>;

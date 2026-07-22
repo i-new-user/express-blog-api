@@ -1,40 +1,28 @@
-import { ObjectId } from 'mongodb';
-import { getDb } from '../../db/mongo-client';
-import {
-  CommentDbModel,
-  LikeStatus,
-} from './domain/comment.entity';
-
-const getCommentsCollection = () =>
-  getDb().collection<CommentDbModel>('comments');
+import { isValidObjectId } from 'mongoose';
+import { CommentDbModel, LikeStatus } from './domain/comment.entity';
+import { CommentModel } from './domain/comment.model';
 
 export const commentsRepository = {
   async createComment(comment: CommentDbModel): Promise<void> {
-    await getCommentsCollection().insertOne(comment);
+    await CommentModel.create(comment);
   },
 
   async findCommentById(id: string): Promise<CommentDbModel | null> {
-    if (!ObjectId.isValid(id)) {
+    if (!isValidObjectId(id)) {
       return null;
     }
 
-    return getCommentsCollection().findOne({
-      _id: new ObjectId(id),
-    });
+    return CommentModel.findById(id).lean();
   },
 
   async updateComment(id: string, content: string): Promise<boolean> {
-    if (!ObjectId.isValid(id)) {
+    if (!isValidObjectId(id)) {
       return false;
     }
 
-    const result = await getCommentsCollection().updateOne(
-      { _id: new ObjectId(id) },
-      {
-        $set: {
-          content,
-        },
-      },
+    const result = await CommentModel.updateOne(
+      { _id: id },
+      { $set: { content } },
     );
 
     return result.matchedCount === 1;
@@ -46,35 +34,28 @@ export const commentsRepository = {
     userLogin: string,
     likeStatus: LikeStatus,
   ): Promise<boolean> {
-    if (!ObjectId.isValid(commentId)) {
+    if (!isValidObjectId(commentId)) {
       return false;
     }
 
-    const _id = new ObjectId(commentId);
-
     if (likeStatus === 'None') {
-      const result = await getCommentsCollection().updateOne(
-        { _id },
-        {
-          $pull: {
-            likes: { userId },
-          },
-        },
+      const result = await CommentModel.updateOne(
+        { _id: commentId },
+        { $pull: { likes: { userId } } },
       );
 
       return result.matchedCount === 1;
     }
 
-    const updateExistingResult = await getCommentsCollection().updateOne(
-      {
-        _id,
-        'likes.userId': userId,
-      },
+    const addedAt = new Date().toISOString();
+
+    const updateExistingResult = await CommentModel.updateOne(
+      { _id: commentId, 'likes.userId': userId },
       {
         $set: {
           'likes.$.status': likeStatus,
           'likes.$.userLogin': userLogin,
-          'likes.$.addedAt': new Date().toISOString(),
+          'likes.$.addedAt': addedAt,
         },
       },
     );
@@ -83,18 +64,15 @@ export const commentsRepository = {
       return true;
     }
 
-    const addNewResult = await getCommentsCollection().updateOne(
-      {
-        _id,
-        'likes.userId': { $ne: userId },
-      },
+    const addNewResult = await CommentModel.updateOne(
+      { _id: commentId, 'likes.userId': { $ne: userId } },
       {
         $push: {
           likes: {
             userId,
             userLogin,
             status: likeStatus,
-            addedAt: new Date().toISOString(),
+            addedAt,
           },
         },
       },
@@ -104,13 +82,11 @@ export const commentsRepository = {
   },
 
   async deleteComment(id: string): Promise<boolean> {
-    if (!ObjectId.isValid(id)) {
+    if (!isValidObjectId(id)) {
       return false;
     }
 
-    const result = await getCommentsCollection().deleteOne({
-      _id: new ObjectId(id),
-    });
+    const result = await CommentModel.deleteOne({ _id: id });
 
     return result.deletedCount === 1;
   },

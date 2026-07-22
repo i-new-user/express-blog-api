@@ -1,7 +1,7 @@
 services:
   mongo:
     image: mongo:7
-    container_name: express-blog-api-mongo
+    container_name: nest-blog-api-mongo
     restart: unless-stopped
     ports:
       - "27017:27017"

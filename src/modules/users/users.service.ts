@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { add } from 'date-fns';
-import { ObjectId } from 'mongodb';
+import { Types } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import { env } from '../../config/env';
 import {
@@ -31,7 +31,7 @@ export const usersService = {
     );
 
     const newUser: UserDbModel = {
-      _id: new ObjectId(),
+      _id: new Types.ObjectId(),
       login: input.login,
       email: input.email,
       passwordHash,
