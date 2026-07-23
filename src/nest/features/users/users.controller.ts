@@ -9,12 +9,20 @@ import {
   Param,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { CreateUserDto, UsersQueryDto } from './dto/create-user.dto';
+import { BasicAuthGuard } from '../../common/guards/basic-auth.guard';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import {
+  createUserSchema,
+  CreateUserDto,
+  UsersQueryDto,
+} from './dto/create-user.dto';
 import { UsersQueryRepository } from './users.query-repository';
 import { UsersService } from './users.service';
 
 @Controller('users')
+@UseGuards(BasicAuthGuard)
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
@@ -27,7 +35,9 @@ export class UsersController {
   }
 
   @Post()
-  createUser(@Body() dto: CreateUserDto) {
+  createUser(
+    @Body(new ZodValidationPipe(createUserSchema)) dto: CreateUserDto,
+  ) {
     return this.usersService.create(dto);
   }
 

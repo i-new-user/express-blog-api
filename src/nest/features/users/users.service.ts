@@ -8,6 +8,7 @@ import {
 } from '../../../common/helpers/mongo-error.helper';
 import { UserViewDto } from '../../../modules/users/dto/user.view-dto';
 import { appConfig } from '../../config/app.config';
+import { User } from './domain/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { mapUserToView } from './users.mapper';
 import { UsersRepository } from './users.repository';
@@ -17,6 +18,18 @@ export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
   async create(dto: CreateUserDto): Promise<UserViewDto> {
+    const user = await this.createUser(dto, true);
+    return mapUserToView(user);
+  }
+
+  createForRegistration(dto: CreateUserDto): Promise<User> {
+    return this.createUser(dto, false);
+  }
+
+  private async createUser(
+    dto: CreateUserDto,
+    isConfirmed: boolean,
+  ): Promise<User> {
     const passwordHash = await bcrypt.hash(
       dto.password,
       appConfig.bcryptSaltRounds,
@@ -31,13 +44,13 @@ export class UsersService {
         emailConfirmation: {
           confirmationCode: uuidv4(),
           expirationDate: add(new Date(), { hours: 1 }),
-          isConfirmed: true,
+          isConfirmed,
           recoveryCode: null,
           recoveryCodeExpirationDate: null,
         },
       });
 
-      return mapUserToView(user);
+      return user;
     } catch (error) {
       if (isDuplicateKeyError(error)) {
         const field = getDuplicateKeyField(error) === 'email' ? 'email' : 'login';

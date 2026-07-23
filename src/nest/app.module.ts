@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { appConfig } from './config/app.config';
+import { AuthModule } from './features/auth/auth.module';
 import { BlogsModule } from './features/blogs/blogs.module';
 import { CommentsModule } from './features/comments/comments.module';
 import { PostsModule } from './features/posts/posts.module';
@@ -19,6 +20,7 @@ import { UsersModule } from './features/users/users.module';
       retryDelay: 1000,
     }),
     UsersModule,
+    AuthModule,
     BlogsModule,
     PostsModule,
     CommentsModule,

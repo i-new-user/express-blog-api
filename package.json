@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "NestJS + Mongoose REST API for hometask 13",
+  "description": "NestJS + Mongoose REST API for hometask 14",
   "packageManager": "yarn@1.22.22",
   "main": "dist/main.js",
   "license": "MIT",
@@ -9,9 +9,11 @@
     "dev": "ts-node-dev --respawn --transpile-only src/main.ts",
     "build": "tsc -p tsconfig.json",
     "typecheck:h13": "tsc -p tsconfig.h13-test.json --noEmit",
+    "typecheck:h14": "tsc -p tsconfig.h14-test.json --noEmit",
     "start": "node dist/main.js",
-    "test": "cross-env NODE_ENV=test jest --runInBand tests/h13.e2e.test.ts",
+    "test": "cross-env NODE_ENV=test jest --runInBand tests/h14.e2e.test.ts",
     "test:h13": "cross-env NODE_ENV=test jest --runInBand tests/h13.e2e.test.ts",
+    "test:h14": "cross-env NODE_ENV=test jest --runInBand tests/h14.e2e.test.ts",
     "test:legacy": "cross-env NODE_ENV=test jest --runInBand --testPathIgnorePatterns=h13.e2e.test.ts",
     "test:watch": "cross-env NODE_ENV=test jest --watch",
     "email:test": "ts-node-dev src/test-email.ts"
