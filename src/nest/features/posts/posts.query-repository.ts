@@ -28,26 +28,27 @@ export class PostsQueryRepository {
     private readonly postModel: Model<PostEntity>,
   ) {}
 
-  async findById(id: string): Promise<PostViewDto | null> {
+  async findById(id: string, userId?: string): Promise<PostViewDto | null> {
     if (!isValidObjectId(id)) {
       return null;
     }
 
     const post = await this.postModel.findById(id).lean<PostEntity>();
-    return post ? mapPostToView(post) : null;
+    return post ? mapPostToView(post, userId) : null;
   }
 
-  findAll(query: PaginationQueryDto) {
-    return this.findByFilter({}, query);
+  findAll(query: PaginationQueryDto, userId?: string) {
+    return this.findByFilter({}, query, userId);
   }
 
-  findByBlogId(blogId: string, query: PaginationQueryDto) {
-    return this.findByFilter({ blogId }, query);
+  findByBlogId(blogId: string, query: PaginationQueryDto, userId?: string) {
+    return this.findByFilter({ blogId }, query, userId);
   }
 
   private async findByFilter(
     filter: QueryFilter<PostEntity>,
     query: PaginationQueryDto,
+    userId?: string,
   ) {
     const pagination = getPaginationParams(query);
     const sortBy = getAllowedSortBy<PostSortField>(
@@ -69,7 +70,7 @@ export class PostsQueryRepository {
       totalCount,
       pageNumber: pagination.pageNumber,
       pageSize: pagination.pageSize,
-      items: posts.map(mapPostToView),
+      items: posts.map((post) => mapPostToView(post, userId)),
     });
   }
 }

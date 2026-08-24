@@ -1,7 +1,7 @@
-# Backend API — hometask 14
+# Backend API — hometask 15
 
-Учебный REST API на NestJS и Mongoose. H14 продолжает миграцию Express-кода,
-начатую в H13.
+Учебный REST API на NestJS, Nest CQRS и Mongoose. H15 продолжает миграцию
+Express-кода: изменяющие операции вынесены в command handlers/use cases.
 
 Активное приложение реализует:
 
@@ -10,11 +10,11 @@
 - восстановление и изменение пароля;
 - CRUD users под Basic Auth;
 - CRUD blogs и posts без авторизации;
-- чтение comments и likes, перенесённое в H13;
+- CRUD comments и likes;
 - очистку тестовой базы.
 
-Refresh token flow в H14 не подключён, что разрешено заданием. Rate limit/IP
-restriction также не подключён.
+Login устанавливает httpOnly/secure cookie `refreshToken` с заглушкой.
+Обновление пары токенов не подключено. Rate limit/IP restriction отключены.
 
 ## Запуск
 
@@ -27,15 +27,15 @@ yarn dev
 Базовый URL:
 
 ```text
-http://localhost:3000/hometask_14/api
+http://localhost:3000/hometask_15/api
 ```
 
 Проверка:
 
 ```bash
 yarn build
-yarn typecheck:h14
-yarn test:h14
+yarn typecheck:h15
+yarn test:h15
 ```
 
 Для e2e-теста MongoDB должна быть доступна по адресу из `.env.test`.

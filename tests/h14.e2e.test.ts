@@ -11,7 +11,7 @@ const basicAuth = `Basic ${Buffer.from(
   `${appConfig.adminLogin}:${appConfig.adminPassword}`,
 ).toString('base64')}`;
 
-describe('Hometask 14 NestJS API', () => {
+describe('Hometask 15 NestJS API', () => {
   let app: INestApplication;
 
   const emailServiceMock = {
@@ -123,19 +123,18 @@ describe('Hometask 14 NestJS API', () => {
         .expect(200);
 
       expect(login.body.accessToken).toEqual(expect.any(String));
+      expect(String(login.headers['set-cookie'])).toContain('refreshToken=');
 
-      await request(app.getHttpServer())
-        .get(`${api}/auth/me`)
-        .expect(401);
+      const meResponse = await request(app.getHttpServer())
+  .get(`${api}/auth/me`)
+  .set('Authorization', `Bearer ${login.body.accessToken}`)
+  .expect(200);
 
-      await request(app.getHttpServer())
-        .get(`${api}/auth/me`)
-        .set('Authorization', `Bearer ${login.body.accessToken}`)
-        .expect(200, {
-          email: 'bob@example.dev',
-          login: 'bob',
-          userId: expect.any(String),
-        });
+expect(meResponse.body).toEqual({
+  email: 'bob@example.dev',
+  login: 'bob',
+  userId: expect.any(String),
+});
     });
   });
 

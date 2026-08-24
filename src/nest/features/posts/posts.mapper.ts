@@ -1,7 +1,7 @@
 import { PostViewDto } from '../../../modules/posts/dto/post.view-dto';
 import { PostEntity } from './domain/post.schema';
 
-export const mapPostToView = (post: PostEntity): PostViewDto => {
+export const mapPostToView = (post: PostEntity, userId?: string): PostViewDto => {
   const likes = post.likes ?? [];
   const newestLikes = likes
     .filter((like) => like.status === 'Like')
@@ -24,7 +24,7 @@ export const mapPostToView = (post: PostEntity): PostViewDto => {
     extendedLikesInfo: {
       likesCount: likes.filter((like) => like.status === 'Like').length,
       dislikesCount: likes.filter((like) => like.status === 'Dislike').length,
-      myStatus: 'None',
+      myStatus: likes.find((like) => like.userId === userId)?.status ?? 'None',
       newestLikes,
     },
   };

@@ -1,7 +1,7 @@
 import { CommentViewDto } from '../../../modules/comments/dto/comment.view-dto';
 import { CommentEntity } from './domain/comment.schema';
 
-export const mapCommentToView = (comment: CommentEntity): CommentViewDto => {
+export const mapCommentToView = (comment: CommentEntity, userId?: string): CommentViewDto => {
   const likes = comment.likes ?? [];
 
   return {
@@ -12,7 +12,7 @@ export const mapCommentToView = (comment: CommentEntity): CommentViewDto => {
     likesInfo: {
       likesCount: likes.filter((like) => like.status === 'Like').length,
       dislikesCount: likes.filter((like) => like.status === 'Dislike').length,
-      myStatus: 'None',
+      myStatus: likes.find((like) => like.userId === userId)?.status ?? 'None',
     },
   };
 };

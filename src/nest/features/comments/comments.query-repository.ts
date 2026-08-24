@@ -21,16 +21,16 @@ export class CommentsQueryRepository {
     private readonly commentModel: Model<CommentEntity>,
   ) {}
 
-  async findById(id: string): Promise<CommentViewDto | null> {
+  async findById(id: string, userId?: string): Promise<CommentViewDto | null> {
     if (!isValidObjectId(id)) {
       return null;
     }
 
     const comment = await this.commentModel.findById(id).lean<CommentEntity>();
-    return comment ? mapCommentToView(comment) : null;
+    return comment ? mapCommentToView(comment, userId) : null;
   }
 
-  async findByPostId(postId: string, query: PaginationQueryDto) {
+  async findByPostId(postId: string, query: PaginationQueryDto, userId?: string) {
     const pagination = getPaginationParams(query);
     const sortBy = getAllowedSortBy<CommentSortField>(
       pagination.sortBy,
@@ -52,7 +52,7 @@ export class CommentsQueryRepository {
       totalCount,
       pageNumber: pagination.pageNumber,
       pageSize: pagination.pageSize,
-      items: comments.map(mapCommentToView),
+      items: comments.map((comment) => mapCommentToView(comment, userId)),
     });
   }
 }

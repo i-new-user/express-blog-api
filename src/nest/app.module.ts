@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CqrsModule } from '@nestjs/cqrs';
 import { MongooseModule } from '@nestjs/mongoose';
 import { appConfig } from './config/app.config';
 import { AuthModule } from './features/auth/auth.module';
@@ -10,6 +11,7 @@ import { UsersModule } from './features/users/users.module';
 
 @Module({
   imports: [
+    CqrsModule.forRoot(),
     MongooseModule.forRoot(appConfig.mongoUrl, {
       dbName: appConfig.dbName,
       serverSelectionTimeoutMS: 5000,
