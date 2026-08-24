@@ -14,11 +14,24 @@ export class ZodValidationPipe implements PipeTransform {
     const result = this.schema.safeParse(value);
 
     if (!result.success) {
+      const errorsByField = new Map<string, string>();
+
+      for (const issue of result.error.issues) {
+        const field = String(issue.path[0]);
+
+        if (!errorsByField.has(field)) {
+          errorsByField.set(field, issue.message);
+        }
+      }
+
       throw new BadRequestException({
-        errorsMessages: result.error.issues.map((issue) => ({
-          message: issue.message,
-          field: String(issue.path[0]),
-        })),
+        errorsMessages: Array.from(
+          errorsByField,
+          ([field, message]) => ({
+            message,
+            field,
+          }),
+        ),
       });
     }
 
