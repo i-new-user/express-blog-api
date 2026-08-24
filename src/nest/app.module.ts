@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { MongooseModule } from '@nestjs/mongoose';
 import { appConfig } from './config/app.config';
@@ -8,6 +8,8 @@ import { CommentsModule } from './features/comments/comments.module';
 import { PostsModule } from './features/posts/posts.module';
 import { TestingModule } from './features/testing/testing.module';
 import { UsersModule } from './features/users/users.module';
+import { SecurityModule } from './features/security/security.module';
+import { RateLimitMiddleware } from './common/middlewares/rate-limit.middleware';
 
 @Module({
   imports: [
@@ -27,6 +29,18 @@ import { UsersModule } from './features/users/users.module';
     PostsModule,
     CommentsModule,
     TestingModule,
+    SecurityModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(RateLimitMiddleware).forRoutes(
+      { path: 'auth/login', method: RequestMethod.POST },
+      { path: 'auth/registration', method: RequestMethod.POST },
+      { path: 'auth/registration-confirmation', method: RequestMethod.POST },
+      { path: 'auth/registration-email-resending', method: RequestMethod.POST },
+      { path: 'auth/password-recovery', method: RequestMethod.POST },
+      { path: 'auth/new-password', method: RequestMethod.POST },
+    );
+  }
+}

@@ -125,16 +125,20 @@ describe('Hometask 15 NestJS API', () => {
       expect(login.body.accessToken).toEqual(expect.any(String));
       expect(String(login.headers['set-cookie'])).toContain('refreshToken=');
 
-      const meResponse = await request(app.getHttpServer())
-  .get(`${api}/auth/me`)
-  .set('Authorization', `Bearer ${login.body.accessToken}`)
-  .expect(200);
+      await request(app.getHttpServer())
+        .get(`${api}/auth/me`)
+        .expect(401);
 
-expect(meResponse.body).toEqual({
-  email: 'bob@example.dev',
-  login: 'bob',
-  userId: expect.any(String),
-});
+      const meResponse = await request(app.getHttpServer())
+        .get(`${api}/auth/me`)
+        .set('Authorization', `Bearer ${login.body.accessToken}`)
+        .expect(200);
+
+      expect(meResponse.body).toEqual({
+          email: 'bob@example.dev',
+          login: 'bob',
+          userId: expect.any(String),
+      });
     });
   });
 

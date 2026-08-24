@@ -6,6 +6,12 @@ export type AccessTokenPayload = {
   userId: string;
 };
 
+export type RefreshTokenPayload = AccessTokenPayload & {
+  deviceId: string;
+  iat: number;
+  exp: number;
+};
+
 @Injectable()
 export class JwtTokenService {
   createAccessToken(userId: string): string {
@@ -14,26 +20,24 @@ export class JwtTokenService {
         appConfig.accessTokenExpiresIn as SignOptions['expiresIn'],
     };
 
+    return jwt.sign({ userId }, appConfig.accessTokenSecret, options);
+  }
+
+  createRefreshToken(userId: string, deviceId: string): string {
+    const options: SignOptions = { expiresIn: appConfig.refreshTokenExpiresIn as SignOptions['expiresIn'] };
     return jwt.sign(
-      { userId },
+      { userId, deviceId, tokenType: 'refresh' },
       appConfig.accessTokenSecret,
       options,
     );
   }
 
-  createRefreshToken(userId: string): string {
-    const options: SignOptions = {
-      expiresIn: '24h',
-    };
-
-    return jwt.sign(
-      {
-        userId,
-        tokenType: 'refresh',
-      },
-      appConfig.accessTokenSecret,
-      options,
-    );
+  verifyRefreshToken(token: string): RefreshTokenPayload | null {
+    try {
+      return jwt.verify(token, appConfig.accessTokenSecret) as RefreshTokenPayload;
+    } catch {
+      return null;
+    }
   }
 
   verifyAccessToken(token: string): AccessTokenPayload | null {

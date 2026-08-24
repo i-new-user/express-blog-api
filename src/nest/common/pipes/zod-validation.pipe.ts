@@ -18,20 +18,16 @@ export class ZodValidationPipe implements PipeTransform {
 
       for (const issue of result.error.issues) {
         const field = String(issue.path[0]);
-
         if (!errorsByField.has(field)) {
           errorsByField.set(field, issue.message);
         }
       }
 
       throw new BadRequestException({
-        errorsMessages: Array.from(
-          errorsByField,
-          ([field, message]) => ({
-            message,
-            field,
-          }),
-        ),
+        errorsMessages: Array.from(errorsByField, ([field, message]) => ({
+          message,
+          field,
+        })),
       });
     }
 

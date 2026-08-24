@@ -12,13 +12,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { AuthService } from './auth.service';
 import { BearerAuthGuard } from './bearer-auth.guard';
 import type { AuthenticatedRequest } from './bearer-auth.guard';
 import { LoginCommand } from './use-cases/login.use-case';
 import { ConfirmRegistrationCommand, RecoverPasswordCommand, RegisterUserCommand, ResendRegistrationEmailCommand, SetNewPasswordCommand } from './use-cases/auth.use-cases';
+import { RefreshTokenGuard } from './refresh-token.guard';
+import type { RefreshAuthenticatedRequest } from './refresh-token.guard';
+import { LogoutCommand, RefreshSessionCommand } from './use-cases/refresh-session.use-cases';
 import {
   LoginDto,
   loginSchema,
@@ -42,9 +45,12 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(
     @Body(new ZodValidationPipe(loginSchema)) dto: LoginDto,
+    @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const result = await this.commandBus.execute(new LoginCommand(dto));
+    const forwarded = request.headers['x-forwarded-for'];
+    const ip = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : request.ip || 'unknown';
+    const result = await this.commandBus.execute(new LoginCommand(dto, ip, request.headers['user-agent'] || 'unknown'));
 
     if (!result) {
       throw new UnauthorizedException();
@@ -54,9 +60,27 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 20 * 1000,
     });
     return { accessToken: result.accessToken };
+  }
+
+  @Post('refresh-token')
+  @UseGuards(RefreshTokenGuard)
+  @HttpCode(HttpStatus.OK)
+  async refresh(@Req() req: RefreshAuthenticatedRequest, @Res({ passthrough: true }) res: Response) {
+    const result = await this.commandBus.execute(new RefreshSessionCommand(req.userId, req.deviceId, req.tokenIssuedAt));
+    if (!result) throw new UnauthorizedException();
+    res.cookie('refreshToken', result.refreshToken, { httpOnly: true, secure: true, sameSite: 'none', maxAge: 20_000 });
+    return { accessToken: result.accessToken };
+  }
+
+  @Post('logout')
+  @UseGuards(RefreshTokenGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async logout(@Req() req: RefreshAuthenticatedRequest, @Res({ passthrough: true }) res: Response): Promise<void> {
+    if (!(await this.commandBus.execute(new LogoutCommand(req.userId, req.deviceId, req.tokenIssuedAt)))) throw new UnauthorizedException();
+    res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'none' });
   }
 
   @Get('me')

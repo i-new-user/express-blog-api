@@ -1,4 +1,4 @@
-# Backend API — hometask 15
+# Backend API — hometask 16
 
 Учебный REST API на NestJS, Nest CQRS и Mongoose. H15 продолжает миграцию
 Express-кода: изменяющие операции вынесены в command handlers/use cases.
@@ -27,7 +27,7 @@ yarn dev
 Базовый URL:
 
 ```text
-http://localhost:3000/hometask_15/api
+http://localhost:3000/hometask_16/api
 ```
 
 Проверка:
